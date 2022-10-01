@@ -218,16 +218,6 @@ def worker_init_fn(_):
     else:
         return np.random.seed(np.random.get_state()[1][0] + worker_id)
 
-class ConcatDataset(Dataset):
-    def __init__(self, *datasets):
-        self.datasets = datasets
-
-    def __getitem__(self, idx):
-        return tuple(d[idx] for d in self.datasets)
-
-    def __len__(self):
-        return min(len(d) for d in self.datasets)
-    
 class DataModuleFromConfig(pl.LightningDataModule):
     def __init__(self, batch_size, train=None, reg = None, validation=None, test=None, predict=None,
                  wrap=False, num_workers=None, shuffle_test_loader=False, use_worker_init_fn=False,
@@ -273,10 +263,8 @@ class DataModuleFromConfig(pl.LightningDataModule):
             init_fn = worker_init_fn
         else:
             init_fn = None
-        train_set = self.datasets["train"]
-        reg_set = self.datasets["reg"]
-        concat_dataset = ConcatDataset(train_set, reg_set)
-        return DataLoader(concat_dataset, batch_size=self.batch_size,
+        dataset = self.datasets["train"]
+        return DataLoader(dataset, batch_size=self.batch_size,
                           num_workers=self.num_workers, shuffle=False if is_iterable_dataset else True,
                           worker_init_fn=init_fn)
 
@@ -772,7 +760,7 @@ if __name__ == "__main__":
 
         # data
         config.data.params.train.params.data_root = opt.data_root
-        config.data.params.reg.params.data_root = opt.reg_data_root
+        config.data.params.train.params.reg_data_root = opt.reg_data_root
         config.data.params.validation.params.data_root = opt.data_root
         data = instantiate_from_config(config.data)
 
