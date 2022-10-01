@@ -1,4 +1,5 @@
-
+.idea
+latent_diffusion.egg-info
 .DS_Store
 gen.bat
 gen_ref.bat

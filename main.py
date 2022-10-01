@@ -176,12 +176,7 @@ def get_parser(**parser_kwargs):
         default="", 
         help="Initialize embedding manager from a checkpoint")
 
-    parser.add_argument("--class_word", 
-        type=str, 
-        default="dog",
-        help="Placeholder token which will be used to denote the concept in future prompts")
-
-    parser.add_argument("--init_word", 
+    parser.add_argument("--init_word",
         type=str, 
         help="Word to use as source for initial token embedding")
 
@@ -644,10 +639,6 @@ if __name__ == "__main__":
         # if opt.init_word:
         #     config.model.params.personalization_config.params.initializer_words[0] = opt.init_word
             
-        config.data.params.train.params.placeholder_token = opt.class_word
-        config.data.params.reg.params.placeholder_token = opt.class_word
-        config.data.params.validation.params.placeholder_token = opt.class_word
-
         if opt.actual_resume:
             model = load_model_from_config(config, opt.actual_resume)
         else:

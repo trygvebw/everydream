@@ -1,5 +1,6 @@
 # Index
 
+- [Notes by Kane](#notes-by-kane)
 - [Notes by Joe Penna](#notes-by-joe-penna)
 - [Setup](#setup)
   - [Easy RunPod Instructions](#easy-runpod-instructions)
@@ -15,6 +16,24 @@
 # The Repo Formerly Known As "Dreambooth"
 ## ...now more accurately described as "Unfrozen Model Textual Inversion for Stable Diffusion"
 ![image](https://user-images.githubusercontent.com/100188076/192390551-cb89364f-af57-4aed-8f3d-f9eb9b61cf95.png)
+
+## <a name="notes-by-kane"></a>  Notes by Kane
+ I have modified Joe's fork to take captions for the training set from the filename of the training image. This allows you
+to train multiple people or things at the same time. It also takes the caption for the regularization images from the filename which allows you to regularize multi classes during 
+the train as well. The results are seem quite good. 
+
+It takes whatever is before an _ (underscore) in the file name and uses that as the caption on the image. (e.g. `caption_xyz.jpg`).
+
+For your training images use something like `kwallmann man_001.jpg`. And for your regularization images use something like
+`man_001.jpg`. You can have any number of different training image captions. I've only tried with 2 so far so there might
+be issues if you try to do many more.
+
+I've combined the `man_euler`, `person_ddim`, and `woman` regularization datasets into a single repository for convenience 
+here: https://github.com/kanewallmann/Stable-Diffusion-Regularization-Images
+
+Because the caption is taken solely from the filename, the parameter `--class_word` is no longer needed and no modifications to
+`personalized.py` are required.
+
 
 ## <a name="notes-by-joe-penna"></a>  Notes by Joe Penna
 ### **INTRODUCTIONS!**
