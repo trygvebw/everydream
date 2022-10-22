@@ -1,233 +1,67 @@
-# Index
-
-- [Notes by Kane](#notes-by-kane)
-- [Notes by Joe Penna](#notes-by-joe-penna)
-- [Setup](#setup)
-  - [Easy RunPod Instructions](#easy-runpod-instructions)
-  - [Vast.AI Setup](#vast-ai-setup)
-- [Textual Inversion vs. Dreambooth](#text-vs-dreamb)
-- [Using the Generated Model](#using-the-generated-model)
-- [Debugging Your Results](#debugging-your-results)
-  - [They don't look like you at all!](#they-dont-look-like-you)
-  - [They sorta look like you, but exactly like your training images](#they-sorta-look-like-you-but-exactly-like-your-training-images)
-  - [They look like you, but not when you try different styles](#they-look-like-you-but-not-when-you-try-different-styles)
-- [Hugging Face Diffusers](#hugging-face-diffusers)
-
-# The Repo Formerly Known As "Dreambooth"
-## ...now more accurately described as "Unfrozen Model Textual Inversion for Stable Diffusion"
-![image](https://user-images.githubusercontent.com/100188076/192390551-cb89364f-af57-4aed-8f3d-f9eb9b61cf95.png)
-
-## <a name="notes-by-kane"></a>  Notes by Kane
- I have modified Joe's fork to take captions for the training set from the filename of the training image. This allows you
-to train multiple people or things at the same time. It also takes the caption for the regularization images from the filename which allows you to regularize multi classes during 
-the train as well. The results are seem quite good. 
-
-It takes whatever is before an _ (underscore) in the file name and uses that as the caption on the image. (e.g. `caption_xyz.jpg`).
-
-For your training images use something like `kwallmann man_001.jpg`. And for your regularization images use something like
-`man_001.jpg`. You can have any number of different training image captions. I've only tried with 2 so far so there might
-be issues if you try to do many more.
-
-I've combined the `man_euler`, `person_ddim`, and `woman` regularization datasets into a single repository for convenience 
-here: https://github.com/kanewallmann/Stable-Diffusion-Regularization-Images
+# Every Dream trainer for Stable Diffusion
 
-Because the caption is taken solely from the filename, the parameter `--class_word` is no longer needed and no modifications to
-`personalized.py` are required.
+This is a bit of a divergence from other fine tuning methods out there for Stable Diffusion.  No more "DreamBooth" stuff like tokens, classes, or regularization, though I thank the DreamBooth training community for sharing information and techniques.  Yet, it is time to move on.
 
+## Onward to Every Dream
+This trainer is focused on enabling fine tuning with new training data plus weaving in original, ground truth images scraped from the web via Laion dataset or other publically available ML image sets.  Compared to DreamBooth, concepts such as regularization have been removed, an token/class are no long concepts used, as they have been replaced by per-image captioning for training, more or less equal to how Stable Diffusion was trained itself. This is a shift back to the original training code and methodology for fine tuning for general cases.
 
-## <a name="notes-by-joe-penna"></a>  Notes by Joe Penna
-### **INTRODUCTIONS!**
-Hi! My name is Joe Penna.
+To get the most out of this trainer, you will need to curate a data set to be trained in addition to ground truth images to help preserve the model integrity and character.  Luckily, there are additional tools below to help enable that, and will grow over time.
 
-You might have seen a few YouTube videos of mine under *MysteryGuitarMan*. I'm now a feature film director. You might have seen [ARCTIC](https://www.youtube.com/watch?v=N5aD9ppoQIo&t=6s) or [STOWAWAY](https://www.youtube.com/watch?v=A_apvQkWsVY).
+## Image Captioning
 
-For my movies, I need to be able to train specific actors, props, locations, etc. So, I did a bunch of changes to @XavierXiao's repo in order to train people's faces.
+This trainer is built to use the filenames of your images as "captions" on a per-image basis, *so the entire Latent Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** 
 
-I can't release all the tests for the movie I'm working on, but when I test with my own face, I release those on my Twitter page - [@MysteryGuitarM](https://twitter.com/MysteryGuitarM).
+### Formatting
 
-Lots of these tests were done with a buddy of mine -- Niko from CorridorDigital. It might be how you found this repo!
+The filenames are using for captioning, with a split on underscore so you can have "duplicate" captioned images.  Examples of valid filenames:
 
-I'm not really a coder. I'm just stubborn, and I'm not afraid of googling. So, eventually, some really smart folks joined in and have been contributing. In this repo, specifically: @djbielejeski @gammagec @MrSaad –– but so many others in our Discord!
+    a photo of John Jacob Jingleheimerschmidt riding a bicycle.webp
+    a pencil drawing of john jacob jingleheimerscmidt.jpg
+    john jacob jingleheimerschmidt sitting on a bench in a park with trees in the background_(1).png
+    john jacob jingleheimerschmidt sitting on a bench in a park with trees in the background_(2).png
 
-This is no longer my repo. This is the people-who-wanna-see-Dreambooth-on-SD-working-well's repo!
+In the 3rd and 4th example above, the _(1) and _(2) are ignored and not considered by the trainer.  This is useful if you end up with duplicate filenames but different image contents for whatever reason. 
 
-Now, if you wanna try to do this... please read the warnings below first:
+### Data set organization
 
-### **WARNING!**
-- **This is bleeding edge stuff**... there is currently no easy way to run this. This repo is based on a repo based on another repo.
-  - At the moment, it takes a LOT of effort to create something that's basically duct tape and bubble gum -- but eventually works SUPER well.
-  - Step in, please! Don't let that scare ya -- but please know that you're wading through the jungle at night, with no torch...
+You will need to organize your files into datasets with a single layer of subfolders.  
 
-- Unfreezing the model takes a lot of juice.
-  - ~~You're gonna need an A6000 / A40 / A100 (or similar top-of-the-line thousands-of-dollars GPU).~~
-  - You can now run this on a GPU with 24GB of VRAM (e.g. 3090). Training will be slower, and you'll need to be sure this is the *only* program running.
-  - If, like myself, you don't happen to own one of those, I'm including a Jupyter notebook here to help you run it on a rented cloud computing platform. 
-  - It's currently tailored to [runpod.io](https://runpod.io?ref=n8yfwyum), but can work on [vast.ai](#vast-ai-setup) / etc.
-  
-- This implementation does not fully implement Google's ideas on how to preserve the latent space.
+While you can simply stuff everything, new training and ground truth data all in one subfolder, for organization purposes I suggest splitting up your subfolders in a fashion such as the following:
 
-  - Most images that are similar to what you're training will be shifted towards that.
-  - e.g. If you're training a person, all people will look like you. If you're training an object, anything in that class will look like your object.
+    /training_samples/MyProject
+    /training_samples/MyProject/man
+    /training_samples/MyProject/man_laion
+    /training_samples/MyProject/man_nvflickr
+    /training_samples/MyProject/paintings_laion
+    /training_samples/MyProject/drawings_laion
 
-- There doesn't seem to be an easy way to train two subjects consecutively. You will end up with an `11-12GB` file before pruning.
-  - The provided notebook has a pruner that crunches it down to `~2gb`
-  
-- Best practice is to change the token to a celebrity name. Here's [my wife trained with the exact same settings, except for the token](#using-the-generated-model)
+In the above example, "/training_samples/MyProject" will be your root folder for the command line.  It must be devoid of anything but the subfolders.  **The subfolders again are purely for your own organizational purposes, the names of the subfolders do not matter to the trainer.** It's up to you how you want to name or organize subfolders, the only requirement is that you use a single layer of subfolders and the root folder for your project contains nothing but the subfolders.  You must not put images directly into /training_samples/MyProject. 
 
+Also in the above example, /training_samples/MyProject/man would contain new training images you want to "teach" the model, and the man_laion and man_nvflickr sets would contain images scraped from laion or other original sources (see below for possible sources). It's up to you what you want to include.
 
-# <a name="setup"></a> Setup
-## <a name="easy-runpod-instructions"></a> Easy RunPod Instructions
-- Sign up for RunPod. Feel free to use my [referral link here](https://runpod.io?ref=n8yfwyum), so that I don't have to pay for it (but you do).
-- Click **Deploy** on either `SECURE CLOUD` or `COMMUNITY CLOUD`
-- Follow these video instructions here:
+As you build your data set, you may find it is easiest to organize in this way to track your balance between new training data and ground truth used to preserve the model integrity.  For instance, if you have 500 new training images in ../man you may with to use 500  in the /man_laion and another 500 in /man_nvflickr.  You can then experiment by removing different folders to see the effects on training quality.
 
-[![VIDEO INSTRUCTIONS](https://img.youtube.com/vi/7m__xadX0z0/0.jpg)](https://www.youtube.com/watch?v=7m__xadX0z0#t=5m33.1s)
+### Suggestions
 
-## <a name="vast-ai-setup"></a>  Vast.AI Instructions
-- Sign up for [Vast.AI](https://vast.ai/)
-- Add some funds (I typically add them in $10 increments)
-- Navigate to the [Client - Create page](https://vast.ai/console/create/)
-  - Select pytorch/pytorch as your docker image, and the buttons "Use Jupyter Lab Interface" and "Jupyter direct HTTPS"
-  - ![img.png](readme-images/vast-ai-step1-select-docker-image.png)
-- You will want to increase your disk space, and filter on GPU RAM (12gb checkpoint files + 4gb model file + regularization images + other stuff adds up fast)
-  - I typically allocate 150GB
-  - ![img.png](readme-images/vast-ai-step2-instance-filters.png)
-  - Also good to check the Upload/Download speed for enough bandwidth so you don't spend all your money waiting for things to download.
-- Select the instance you want, and click `Rent`, then head over to your [Instances](https://vast.ai/console/instances/) page and click `Open`
-  - ![img.png](readme-images/vast-ai-step3-instances.png)
-  - You will get an unsafe certificate warning. Click past the warning or install the [Vast cert](https://vast.ai/static/jvastai_root.cer).
-- Click `Notebook -> Python 3` (You can do this next step a number of ways, but I typically do this)
-  - ![img.png](readme-images/vast-ai-step4-get-repo.png)
-- Clone Joe's repo with this command
-  - `!git clone https://github.com/JoePenna/Dreambooth-Stable-Diffusion.git`
-  - Click `run`
-  - ![img.png](readme-images/vast-ai-step5-clone-repo.png)
-- Navigate into the new `Dreambooth-Stable-Diffusion` directory on the left and open the `dreambooth_runpod_joepenna.ipynb` file
-  - ![img.png](readme-images/vast-ai-step6-open-notebook.png)
-- Follow the instructions in the workbook and start training
+The more data you add from ground truth data sets such as Laion, the more training you will get away with without "damaging" the original model.  The wider variety of data in the ground truth portion of your dataset, the less likely your training images are to "bleed" into the rest of your model, losing qualities like the ability to generate images of other styles you are not training.  This is about knowledge retention in the model by refeeding it the same data it was originally trained on.
 
-# <a name="text-vs-dreamb"></a>  Textual Inversion vs. Dreambooth
-The majority of the code in this repo was written by Rinon Gal et. al, the authors of the Textual Inversion research paper.
+## Ground truth data sources and data engineering
 
-A few bits about regularization images were added that we all thought were super important -- all the researchers included!
+Visit [EveryDream Data Engineering Tools](https://github.com/victorchall/EveryDream) to find a web scraper that can pull down images from the Laion dataset.  You should consider that your first step before using this trainer to collect data.
 
-...until my images were trained under the class "dog":
-<br><img src="https://media.discordapp.net/attachments/1024716296610385981/1024933960083587102/unknown.png" width="200">
+I suggest pulling down all the files for this set in particular: [https://huggingface.co/datasets/laion/laion2B-en-aesthetic](https://huggingface.co/datasets/laion/laion2B-en-aesthetic) to use with the web scraper.
 
-...and under the nonsensical class "§¶•" instead of "man" or "woman" or "person":
-<br><img src="https://media.discordapp.net/attachments/1024716296610385981/1024934146415529984/unknown.png" width="200">
+There is information is in the EveryDream Data Engineering Tools link above on how to run the web scrape.  The webscrape takes zero GPU power, so you can run it locally on any PC with Python before renting GPU power if needed.
 
-...and with completely blank regularization images:
-<br><img src="https://media.discordapp.net/attachments/1023293330601287711/1024933371102629898/IMG_7579.JPG" width="200">
+The Nvidia Flickr set is also helpful and in a fairly "ready to use" format besides renaming the files: [https://github.com/NVlabs/ffhq-dataset](https://github.com/NVlabs/ffhq-dataset) 
+For this trainer, I suggest "close up photo of a person" for captioning of this dataset. If you want, you can go further and separate male/female photos and caption them "close up phot of a man" or "..a woman" as you see fit.  "a close up of a person" is also acceptable, dropping "photo".  You can simply select all in windows, F2 to rename and type "a close up of a person_" **without the quotes but with the underscore** to format the filename captions in a way this trainer can use.
 
-And here's what `"photograph of an apple"` looked like before I messed with code a bit:
-<br><img src="https://media.discordapp.net/attachments/1018943815370952855/1018946569850069052/unknown.png" width="200">
+Thanks to Xaiver Xiao for the DreamBooth implementation and tweaking of trainer configs to stuff it into a 24GB card, and Kane Wallmann for code take image captions from the filenames.
 
-We're not realizing the "regularization class" bits of this code have no effect, and that there is little to no prior preservation loss.
+### Additional notes
 
-So, out of respect to both the MIT team and the Google researchers, I'm renaming this fork to:
-*"Unfrozen Model Textual Inversion for Stable Diffusion"*.
+References:
 
-For an alternate implementation that attempts prior loss preservation, please see ["Alternate Option"](#hugging-face-diffusers) below.
+[Xaiver Xiao's DreamBooth implementation](https://github.com/XavierXiao/Dreambooth-Stable-Diffusion)
 
-
-# <a name="using-the-generated-model"></a> Using the generated model
-The `ground truth` (real picture, caution: very beautiful woman)
-<br><img src="https://user-images.githubusercontent.com/100188076/192403948-8d1d0e50-3e9f-495f-b8ba-1bcb6b536fc8.png" width="200">
-
-Same prompt for all of these images below:
-
-| `sks` | `woman` | `Natalie Portman` | `Kate Mara` |
-| ----- | ------- | ----------------- | ----------- |
-| <img src="https://user-images.githubusercontent.com/100188076/192403506-ab96c652-f7d0-47b0-98fa-267defa1e511.png" width="200"> | <img src="https://user-images.githubusercontent.com/100188076/192403491-cb258777-5091-4492-a6cc-82305fa729f4.png" width="200"> | <img src="https://user-images.githubusercontent.com/100188076/192403437-f9a93720-d41c-4334-8901-fa2d2a10fe36.png" width="200"> | <img src="https://user-images.githubusercontent.com/100188076/192403461-1f6972d9-64d0-46b0-b2ed-737e47aae31e.png" width="200"> |   
-
-# <a name="debugging-your-results"></a> Debugging your results
-### ❗❗ THE NUMBER ONE MISTAKE PEOPLE MAKE ❗❗
-
-**Prompting with just your token. ie "joepenna" instead of "joepenna person"**
-
-
-If you trained with `joepenna` under the class `person`, the model should only know your face as:
-
-```
-joepenna person
-```
-
-Example Prompts:
-
-🚫 Incorrect (missing `person` following `joepenna`)
-```
-portrait photograph of joepenna 35mm film vintage glass
-```
-
-✅ This is right (`person` is included after `joepenna`)
-```
-portrait photograph of joepenna person 35mm film vintage glass
-```
-
-You might sometimes get someone who kinda looks like you with joepenna (especially if you trained for too many steps), but that's only because this current iteration of Dreambooth overtrains that token so much that it bleeds into that token.
-
----
-
-#### ☢ Be careful with the types of images you train
-
-While training, Stable doesn't know that you're a person. It's just going to mimic what it sees.
-
-So, if these are your training images look like this:
-
-![](readme-images/caution-training.png)
-
-You're only going to get generations of you outside next to a spiky tree, wearing a white-and-gray shirt, in the style of... well, selfie photograph.
-
-Instead, this training set is much better:
-
-![](readme-images/better-training-images.png)
-
-The only thing that is consistent between images is the subject. So, Stable will look through the images and learn only your face, which will make "editing" it into other styles possible.
-
-## Oh no! You're not getting good generations!
-
-#### <a name="they-dont-look-like-you"></a> OPTION 1: They're not looking like you at all! (Train longer, or get better training images)
-
-Are you sure you're prompting it right?
-
-It should be `<token> <class>`, not just `<token>`. For example:
-
-`JoePenna person, portrait photograph, 85mm medium format photo`
-
-
-If it still doesn't look like you, you didn't train long enough.
-
-----
-
-#### <a name="they-sorta-look-like-you-but-exactly-like-your-training-images"></a> OPTION 2: They're looking like you, but are all looking like your training images. (Train for less steps, get better training images, fix with prompting)
-
-Okay, a few reasons why: you might have trained too long... or your images were too similar... or you didn't train with enough images.
-
-No problem. We can fix that with the prompt. Stable Diffusion puts a LOT of merit to whatever you type first. So save it for later:
-
-`an exquisite portrait photograph, 85mm medium format photo of JoePenna person with a classic haircut`
-
-
-----
-
-#### <a name="they-look-like-you-but-not-when-you-try-different-styles"></a> OPTION 3: They're looking like you, but not when you try different styles. (Train longer, get better training images)
-
-You didn't train long enough...
-
-No problem. We can fix that with the prompt:
-
-`JoePenna person in a portrait photograph, JoePenna person in a 85mm medium format photo of JoePenna person`
-
-
-### More tips and help here: [Stable Diffusion Dreambooth Discord](https://discord.com/invite/qbMuXBXyHA)
-
-# <a name="hugging-face-diffusers"></a> Hugging Face Diffusers - Alternate Option
-
-Note: This is a diffuser implementation, and use is much more complicated than using a *.ckpy file.
-
-At the moment, there is no way to use the diffusers model with most repos (e.g. AUTOMATIC1111, HLKY, DeForum, etc)
-
-Dreambooth is now supported in Hugging Face diffusers for training with stable diffusion, try it out in the colab:
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/notebooks/blob/main/diffusers/sd_dreambooth_training.ipynb)
+[Kane Wallmann's captioning capability](https://github.com/kanewallmann/Dreambooth-Stable-Diffusion)
