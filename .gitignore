@@ -6,4 +6,7 @@ gen_ref.bat
 train.bat
 __pycache__
 */**/__pycache__
-logs
+logs/**
+training_samples/**
+outputs/**
+*.ckpt
