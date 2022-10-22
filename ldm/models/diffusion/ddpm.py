@@ -355,7 +355,7 @@ class DDPM(pl.LightningModule):
                       logger=True, on_step=True, on_epoch=True)
 
         self.log("global_step", self.global_step,
-                 prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                 prog_bar=True, logger=True, on_step=True, on_epoch=False, batch_size=len(batch['image'].tensor))
 
         if self.use_scheduler:
             lr = self.optimizers().param_groups[0]['lr']
@@ -447,8 +447,6 @@ class LatentDiffusion(DDPM):
                  reg_weight = 1.0,
                  *args, **kwargs):
         
-        self.reg_weight = reg_weight
-
         self.num_timesteps_cond = default(num_timesteps_cond, 1)
         self.scale_by_std = scale_by_std
         assert self.num_timesteps_cond <= kwargs['timesteps']
@@ -483,7 +481,6 @@ class LatentDiffusion(DDPM):
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys)
             self.restarted_from_ckpt = True
-
 
         if not self.unfreeze_model:
             self.cond_stage_model.eval()
@@ -909,13 +906,9 @@ class LatentDiffusion(DDPM):
         return loss
     
     def training_step(self, batch, batch_idx):
-        train_batch = batch[0]
-        reg_batch = batch[1]
+        loss_train, loss_dict = self.shared_step(batch)
         
-        loss_train, loss_dict = self.shared_step(train_batch)
-        loss_reg, _ = self.shared_step(reg_batch)
-        
-        loss = loss_train + self.reg_weight * loss_reg
+        loss = loss_train
 
         self.log_dict(loss_dict, prog_bar=True,
                       logger=True, on_step=True, on_epoch=True)
@@ -1104,14 +1097,6 @@ class LatentDiffusion(DDPM):
         loss_dict.update({f'{prefix}/loss_vlb': loss_vlb})
         loss += (self.original_elbo_weight * loss_vlb)
         loss_dict.update({f'{prefix}/loss': loss})
-
-        # if self.embedding_reg_weight > 0:
-        #     loss_embedding_reg = self.embedding_manager.embedding_to_coarse_loss().mean()
-
-        #     loss_dict.update({f'{prefix}/loss_emb_reg': loss_embedding_reg})
-
-        #     loss += (self.embedding_reg_weight * loss_embedding_reg)
-        #     loss_dict.update({f'{prefix}/loss': loss})
 
         return loss, loss_dict
 
@@ -1325,7 +1310,6 @@ class LatentDiffusion(DDPM):
         use_ddim = ddim_steps is not None
 
         log = dict()
-        batch = batch[0]
         z, c, x, xrec, xc = self.get_input(batch, self.first_stage_key,
                                            return_first_stage_outputs=True,
                                            force_c_encode=True,

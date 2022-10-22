@@ -89,7 +89,7 @@ data:
     num_workers: 8 # should probably not exceed thread count on CPU, good idea to have more workers than batch_size
     wrap: falsegit
     train:
-      target: ldm.data.personalized_batch.PersonalizeBatchBase
+      target: ldm.data.every_dream.EveryDreamBatch
       params:
         size: 512
         set: train

@@ -6,11 +6,11 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from pathlib import Path
 
-class PersonalizedBatchBase(Dataset):
+class EveryDreamBatch(Dataset):
     def __init__(self,
                  data_root,
                  size=None,
-                 repeats=100,
+                 repeats=10,
                  interpolation="bicubic",
                  flip_p=0.0,
                  set="train",
