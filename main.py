@@ -570,15 +570,6 @@ if __name__ == "__main__":
         trainer_opt = argparse.Namespace(**trainer_config)
         lightning_config.trainer = trainer_config
 
-        # model
-
-        # config.model.params.personalization_config.params.init_word = opt.init_word
-        # config.model.params.personalization_config.params.embedding_manager_ckpt = opt.embedding_manager_ckpt
-        # config.model.params.personalization_config.params.placeholder_tokens = opt.placeholder_tokens
-
-        # if opt.init_word:
-        #     config.model.params.personalization_config.params.initializer_words[0] = opt.init_word
-            
         if opt.actual_resume:
             model = load_model_from_config(config, opt.actual_resume)
         else:
@@ -616,15 +607,15 @@ if __name__ == "__main__":
 
         # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
         # specify which metric is used to determine best models
-        default_modelckpt_cfg = {
-            "target": "pytorch_lightning.callbacks.ModelCheckpoint",
-            "params": {
-                "dirpath": ckptdir,
-                "filename": "{epoch:03}",
-                "verbose": True,
-                "save_last": True,
-            }
-        }
+        # default_modelckpt_cfg = {
+        #     "target": "pytorch_lightning.callbacks.ModelCheckpoint",
+        #     "params": {
+        #         "dirpath": ckptdir,
+        #         "filename": "{epoch:03}",
+        #         "verbose": True,
+        #         "save_last": True,
+        #     }
+        # }
         if hasattr(model, "monitor"):
             print(f"Monitoring {model.monitor} as checkpoint metric.")
             default_modelckpt_cfg["params"]["monitor"] = model.monitor
