@@ -153,7 +153,7 @@ def get_parser(**parser_kwargs):
         "--max_training_steps",
         type=int,
         required=False,
-        default=9400,
+        default=35000,
         help="Number of iterations to run")
 
     parser.add_argument("--actual_resume", 
@@ -605,21 +605,22 @@ if __name__ == "__main__":
         logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
         trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
-        # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
-        # specify which metric is used to determine best models
-        # default_modelckpt_cfg = {
-        #     "target": "pytorch_lightning.callbacks.ModelCheckpoint",
-        #     "params": {
-        #         "dirpath": ckptdir,
-        #         "filename": "{epoch:03}",
-        #         "verbose": True,
-        #         "save_last": True,
-        #     }
-        # }
+        #modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
+        #specify which metric is used to determine best models
+        default_modelckpt_cfg = {
+            "target": "pytorch_lightning.callbacks.ModelCheckpoint",
+            "params": {
+                "dirpath": ckptdir,
+                "filename": "{epoch:03}",
+                "verbose": True,
+                "save_last": True,
+            }
+        }
+
         if hasattr(model, "monitor"):
             print(f"Monitoring {model.monitor} as checkpoint metric.")
             default_modelckpt_cfg["params"]["monitor"] = model.monitor
-            default_modelckpt_cfg["params"]["save_top_k"] = 1
+            default_modelckpt_cfg["params"]["save_top_k"] = 3
 
         if "modelcheckpoint" in lightning_config:
             modelckpt_cfg = lightning_config.modelcheckpoint

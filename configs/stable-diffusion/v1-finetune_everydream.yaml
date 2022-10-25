@@ -1,5 +1,5 @@
 model:
-  base_learning_rate: 9.0e-07
+  base_learning_rate: 1.0e-06
   target: ldm.models.diffusion.ddpm.LatentDiffusion
   params:
     reg_weight: 1.0
@@ -20,15 +20,6 @@ model:
     embedding_reg_weight: 0.0
     unfreeze_model: True
     model_lr: 5.0e-7
-    # scheduler_config:
-    #   target: ldm.lr_scheduler.LambdaLinearScheduler
-    #   params:
-    #     verbosity_interval: 200
-    #     warm_up_steps: 5
-    #     max_decay_steps: 100
-    #     lr_start: 6.0e-7
-    #     lr_max: 8.0e-7 
-    #     lr_min: 1.0e-7 
 
     personalization_config:
       target: ldm.modules.embedding_manager.EmbeddingManager
@@ -93,7 +84,7 @@ data:
       params:
         size: 512
         set: train
-        repeats: 5
+        repeats: 3
     validation:
       target: ldm.data.personalized.PersonalizedBase
       params:
@@ -116,6 +107,6 @@ lightning:
   trainer:
     benchmark: True
     max_epochs: 3
-    #precision: 16 # need lightning 1.6+
+    #precision: 16 # need lightning 1.6+ ??
     #num_nodes: 2 # for multigpu
-    #check_val_every_n_epoch: 1
+    #check_val_every_n_epoch: 2
