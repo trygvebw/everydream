@@ -1,5 +1,5 @@
 model:
-  base_learning_rate: 1.0e-06
+  base_learning_rate: 1.0e-07
   target: ldm.models.diffusion.ddpm.LatentDiffusion
   params:
     reg_weight: 1.0
@@ -19,16 +19,7 @@ model:
     use_ema: False
     embedding_reg_weight: 0.0
     unfreeze_model: True
-    model_lr: 5.0e-7
-
-    personalization_config:
-      target: ldm.modules.embedding_manager.EmbeddingManager
-      params:
-        placeholder_strings: ["*"]
-        initializer_words: ["sculpture"]
-        per_image_tokens: false
-        num_vectors_per_token: 1
-        progressive_words: False
+    model_lr: 1.0e-7
 
     unet_config:
       target: ldm.modules.diffusionmodules.openaimodel.UNetModel
@@ -84,7 +75,7 @@ data:
       params:
         size: 512
         set: train
-        repeats: 3
+        repeats: 5
     validation:
       target: ldm.data.personalized.PersonalizedBase
       params:
@@ -106,7 +97,8 @@ lightning:
 
   trainer:
     benchmark: True
-    max_epochs: 3
-    #precision: 16 # need lightning 1.6+ ??
-    #num_nodes: 2 # for multigpu
-    #check_val_every_n_epoch: 2
+    max_epochs: 1
+    max_steps: 99000  # better to end on epochs not steps
+    #check_val_every_n_epoch: 2 # can skip val every epoch if you want
+    #precision: 16 # need lightning 1.6+ ?? *WIP*
+    #num_nodes: 2 # for multigpu *WIP*

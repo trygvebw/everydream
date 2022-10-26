@@ -149,13 +149,6 @@ def get_parser(**parser_kwargs):
         default=True,
         help="Prepend the final directory in the data_root to the output directory name")
 
-    parser.add_argument(
-        "--max_training_steps",
-        type=int,
-        required=False,
-        default=35000,
-        help="Number of iterations to run")
-
     parser.add_argument("--actual_resume", 
         type=str,
         required=True,
@@ -555,9 +548,6 @@ if __name__ == "__main__":
         # merge trainer cli with config
         trainer_config = lightning_config.get("trainer", OmegaConf.create())
 
-        # Set the steps
-        trainer_config.max_steps = opt.max_training_steps
-
         for k in nondefault_trainer_args(opt):
             trainer_config[k] = getattr(opt, k)
         if not "gpus" in trainer_config:
@@ -611,7 +601,7 @@ if __name__ == "__main__":
             "target": "pytorch_lightning.callbacks.ModelCheckpoint",
             "params": {
                 "dirpath": ckptdir,
-                "filename": "{epoch:03}",
+                "filename": "{epoch:03}-{global_step:05}",
                 "verbose": True,
                 "save_last": True,
             }
@@ -679,7 +669,6 @@ if __name__ == "__main__":
             del callbacks_cfg['ignore_keys_callback']
 
         trainer_kwargs["callbacks"] = [instantiate_from_config(callbacks_cfg[k]) for k in callbacks_cfg]
-        trainer_kwargs["max_steps"] = trainer_opt.max_steps
 
         trainer = Trainer.from_argparse_args(trainer_opt, **trainer_kwargs)
         trainer.logdir = logdir  ###
@@ -725,7 +714,7 @@ if __name__ == "__main__":
         def melk(*args, **kwargs):
             # run all checkpoint hooks
             if trainer.global_rank == 0:
-                print("Here comes the checkpoint...")
+                print("Summoning checkpoint.")
                 ckpt_path = os.path.join(ckptdir, "last.ckpt")
                 trainer.save_checkpoint(ckpt_path)
 
@@ -770,5 +759,5 @@ if __name__ == "__main__":
             os.makedirs(os.path.split(dst)[0], exist_ok=True)
             os.rename(logdir, dst)
         if trainer.global_rank == 0:
-            print("Training complete. max_training_steps reached or we blew up.")
-            # print(trainer.profiler.summary())
+            print("Training complete. max_steps or max_epochs, reached or we blew up.")
+            print(trainer.profiler.summary())

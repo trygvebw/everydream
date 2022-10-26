@@ -21,17 +21,20 @@ class EveryDreamBatch(Dataset):
         self.data_root = data_root
         self.reg = reg
         self.image_paths = []
-        self.image_classes = []
 
         classes = os.listdir(self.data_root)
-        print(f"**** Loading data set: data_root: {data_root}, as set: {set}, classes: {classes}")
+        print(f"**** Loading data set: data_root: {data_root}, as set: {set}")
 
         for cl in classes:
             class_path = os.path.join(self.data_root, cl)
             for file_path in os.listdir(class_path):
                 image_path = os.path.join(class_path, file_path)
                 self.image_paths.append(image_path)
-                self.image_classes.append(cl)
+
+        import random
+        # improve multi-class training by mixing order of training set, avoid training on one class N times in a row
+        # if trainer crashes between epochs and you resume at least it isn't heavily biasing early files in dir order
+        self.image_paths = random.Random(555).shuffle(self.image_paths)
 
         # self._length = len(self.image_paths)
         self.num_images = len(self.image_paths)
