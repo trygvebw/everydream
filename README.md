@@ -55,6 +55,30 @@ There is information is in the EveryDream Data Engineering Tools link above on h
 
 The Nvidia Flickr set is also helpful and in a fairly "ready to use" format besides renaming the files: [https://github.com/NVlabs/ffhq-dataset](https://github.com/NVlabs/ffhq-dataset) 
 For this trainer, I suggest "close up photo of a person" for captioning of this dataset. If you want, you can go further and separate male/female photos and caption them "close up phot of a man" or "..a woman" as you see fit.  "a close up of a person" is also acceptable, dropping "photo".  You can simply select all in windows, F2 to rename and type "a close up of a person_" **without the quotes but with the underscore** to format the filename captions in a way this trainer can use.
+## Starting training
+
+An example comand to start training:
+
+    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume sd_v1-5_vae.ckpt -n MyProjectName --gpus 0, --data_root training_samples\MyProject
+
+In the above, the source training data is expected to be laid out in subfolders of training_samples\MyProject as described in above sections. It will use the first Nvidia GPU in the system, and resume from the checkpoint named "sd_v1-5_vae.ckpt".  "-n MyProjectName" is merely a name for the folder where logs will be written during training, which appear under /logs. 
+## Testing
+
+I strongly recommend attempting to undertrain via the repeats and max_epochs above to test your model before continuing.  Try one epoch at 10, then grab the ckpt file from the log folder.  The ckpt will be dumped to a folder such as \logs\MyPrject2022-10-25T20-37-40_MyProject date stamped to the start of training. There are also test images in the \logs\images\train folder that spit out periodically based on another finetune yaml setting:
+
+      callbacks:
+        image_logger:
+        target: main.ImageLogger
+        params:
+            batch_frequency: 300
+
+The images will often not all be fully formed, and are randomly selected based on the last few training images, but it's a good idea to start learning what to watch for in those images. 
+
+To continue training on a checkpoint, grab the last ckpt file \logs\MyPrject2022-10-25T20-37-40_MyProject\checkpoints and move it back to your base folder and just change the --actual_resume pointer to last.ckpt such as the following:
+
+    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume last.ckpt -n MyProjectName --gpus 0, --data_root training_samples\MyProject
+
+Again, good idea to think about adjusting your repeats before continuing!  
 
 ## Finetune yaml adjustments
 
@@ -82,32 +106,18 @@ The only difference between 20 repeats 1 epoch and 10 repeats 2 epochs is the la
 
 The above settings are a good place at least for humanoid subjects with 100+ images per subject, though some users may find less humanoid subjects require more training, such as cartoons, creatures, etc.
 
-You are also free to move data in and out between training sessions.  If you have multiple subjects and your number of images between them is a bit mismatched in number, say, 100 for one and only 60 for another, you can try running one epoch 25 repeats, then remove the character with 100 images and train just the one with the 60 images for another epoch at 5 repeats. 
-## Starting training
+You are also free to move data in and out of your training_samples/MyProject folder between training sessions.  If you have multiple subjects and your number of images between them is a bit mismatched in number, say, 100 for one and only 60 for another, you can try running one epoch 25 repeats, then remove the character with 100 images and train just the one with the 60 images for another epoch at 5 repeats.  It's best to try to keep the data evenly spread, but sometimes that is diffcult.  You may also find certain characters are harder to train, and need more on their own.  Again, test!  Go generate images between 
 
-An example comand to start training:
+    data:
+      target: main.DataModuleFromConfig
+      params:
+        batch_size: 6
+        num_workers: 8
 
-    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume sd_v1-5_vae.ckpt -n MyProjectName --gpus 0, --data_root training_samples\MyProject
+Batch size determine how many images are loaded and trained on in parallel. 6 will work on a 24GB GPU, 1 will only reduce VRAM use to about 20GB.  This will divide the number of steps used as well, but one epoch is still "repeats" number of trainings on each image.  
 
-In the above, the source training data is expected to be laid out in subfolders of training_samples\MyProject as described in above sections. It will use the first Nvidia GPU in the system, and resume from the checkpoint named "sd_v1-5_vae.ckpt".  "-n MyProjectName" is merely a name for the folder where logs will be written during training, which appear under /logs. 
+I recommend not worrying about step count, but you can calcuate it per epoch as repeats * number_of_training_images / batch_size * (1+1/repeats).  For example, 500 training images with 10 repeats and batch size of six will perform 835 steps per epoch.
 
-## Testing
-
-I strongly recommend attempting to undertrain via the repeats and max_epochs above to test your model before continuing.  Try one epoch at 10, then grab the ckpt file from the log folder.  The ckpt will be dumped to a folder such as \logs\MyPrject2022-10-25T20-37-40_MyProject date stamped to the start of training. There are also test images in the \logs\images\train folder that spit out periodically based on another finetune yaml setting:
-
-      callbacks:
-        image_logger:
-        target: main.ImageLogger
-        params:
-            batch_frequency: 300
-
-The images will often not all be fully formed, and are randomly selected based on the last few training images, but it's a good idea to start learning what to watch for in those images. 
-
-To continue training on a checkpoint, grab the last ckpt file \logs\MyPrject2022-10-25T20-37-40_MyProject\checkpoints and move it back to your base folder and just change the --actual_resume pointer to last.ckpt such as the following:
-
-    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume last.ckpt -n MyProjectName --gpus 0, --data_root training_samples\MyProject
-
-Again, good idea to think about adjusting your repeats before continuing!  
 ### Additional notes
 
 Thanks go to the CompVis team for the original training code, Xaiver Xiao for the DreamBooth implementation and tweaking of trainer configs to stuff it into a 24GB card, and Kane Wallmann for code take image captions from the filenames.
