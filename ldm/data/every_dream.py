@@ -31,13 +31,13 @@ class EveryDreamBatch(Dataset):
                 image_path = os.path.join(class_path, file_path)
                 self.image_paths.append(image_path)
 
-        import random
+        
         # improve multi-class training by mixing order of training set, avoid training on one class N times in a row
         # if trainer crashes between epochs and you resume at least it isn't heavily biasing early folders in training set
-        #self.image_paths = random.Random(555).shuffle(self.image_paths)
-        print(self.image_paths)
+        import random
+        random.Random(555).shuffle(self.image_paths)
+        print(f"**** Loaded {len(self.image_paths)} images fromt {self.data_root}")
 
-        # self._length = len(self.image_paths)
         self.num_images = len(self.image_paths)
         self._length = self.num_images
 
