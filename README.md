@@ -7,6 +7,16 @@ This trainer is focused on enabling fine tuning with new training data plus weav
 
 To get the most out of this trainer, you will need to curate a data set to be trained in addition to collect ground truth images to help preserve the model integrity and character.  Luckily, there are additional tools below to help enable that, and will grow over time.
 
+## Techniques
+
+This is a general purpose fine tuning app.  You can train large or small scale with it and everything in between.
+
+Check out [MICROMODELS.MD](./MICROMODELS.MD) for a quickstatr guide and example for quick model creation with a small data set.  It is suited for training one or two subects with 20-50 images with no preservation in 10-25 minutes.
+
+Or [README-FF7R.MD](./README-FF7R.MD) for large scale training of many characters with model preservation.
+
+More info coming soon on even larger training.
+
 ## Image Captioning
 
 This trainer is built to use the filenames of your images as "captions" on a per-image basis, *so the entire Latent Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** 
