@@ -1,11 +1,10 @@
 
-# FF7R model 5.1
+# Final Fantasy 7 Remake model v5.1
 This is a finetuning of the RunwayML 1.5 ckpt. 
 
 Info: https://huggingface.co/panopstor/ff7r-stable-diffusion
 
 Model: https://huggingface.co/panopstor/ff7r-stable-diffusion/blob/main/ff7r-v5-1.ckpt
-
 
 This fine tuning includes over a dozen concepts trained in 1636 images with individual captions on each image, plus 1636 images scraped from the Laion dataset for model preservation. 
 
@@ -28,7 +27,9 @@ Everything should be fairly natural to prompt with the exception of Biggs and We
 ### Scenery and objects
 
     in midgar city
+    aerial photo of midgar city
     slums district of midgar city
+    backalley of midgar city business district
     business district of midgar city
     train station in midgar city (optionally in a district name from above)
     streets of midgar city (optional in a district name from above)
@@ -37,7 +38,7 @@ Everything should be fairly natural to prompt with the exception of Biggs and We
     food truck in the slums district of midgar
     the bar inside seventh heaven bar
 
-You can mix and match all the above!  Try it out! 
+You can mix and match all the above!  Try it out!  There are a few other characters in there but are undertrained for now, but you can try out other names if you are familiar with the game.
 
 Preservation tests.
 
