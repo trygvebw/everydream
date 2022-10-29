@@ -31,11 +31,9 @@ class EveryDreamBatch(Dataset):
                 image_path = os.path.join(class_path, file_path)
                 self.image_paths.append(image_path)
 
-        
-        # improve multi-class training by mixing order of training set, avoid training on one class N times in a row
-        # if trainer crashes between epochs and you resume at least it isn't heavily biasing early folders in training set
         import random
         random.Random(555).shuffle(self.image_paths)
+        
         print(f"**** Loaded {len(self.image_paths)} images fromt {self.data_root}")
 
         self.num_images = len(self.image_paths)
@@ -76,8 +74,6 @@ class EveryDreamBatch(Dataset):
         parts = pathname.split("_")
         identifier = parts[0]
 
-        example["caption"] = identifier
-
         # default to score-sde preprocessing
         img = np.array(image).astype(np.uint8)
 
@@ -95,4 +91,6 @@ class EveryDreamBatch(Dataset):
         image = self.flip(image)
         image = np.array(image).astype(np.uint8)
         example["image"] = (image / 127.5 - 1.0).astype(np.float32)
+        example["caption"] = identifier
+
         return example
