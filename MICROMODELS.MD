@@ -12,6 +12,10 @@ Example:
 
 Training root in this example will be "/training_samples/ted_bennett" and the extra subfolder is required but can be named anything.
 
+Data to try yourself is here: https://huggingface.co/panopstor/ff7r-stable-diffusion/blob/main/ted_bennett.zip
+
+Finished model here: https://huggingface.co/panopstor/ff7r-stable-diffusion/blob/main/ted_bennett_259step_13minutes.ckpt
+
 ## Example
 
 You can recreate the above model by downloading the dataset or try your own.
