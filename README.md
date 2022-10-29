@@ -11,7 +11,7 @@ To get the most out of this trainer, you will need to curate a data set to be tr
 
 This is a general purpose fine tuning app.  You can train large or small scale with it and everything in between.
 
-Check out [MICROMODELS.MD](./MICROMODELS.MD) for a quickstatr guide and example for quick model creation with a small data set.  It is suited for training one or two subects with 20-50 images with no preservation in 10-25 minutes.
+Check out [MICROMODELS.MD](./MICROMODELS.MD) for a quickstart guide and example for quick model creation with a small data set.  It is suited for training one or two subects with 20-50 images with no preservation in 10-25 minutes.
 
 Or [README-FF7R.MD](./README-FF7R.MD) for large scale training of many characters with model preservation.
 
