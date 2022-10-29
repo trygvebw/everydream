@@ -1,3 +1,5 @@
+
+# FF7R model 5.1
 This is a finetuning of the RunwayML 1.5 ckpt. 
 
 Info: https://huggingface.co/panopstor/ff7r-stable-diffusion
@@ -11,7 +13,9 @@ See the Hugging Face link for more info and a downloadable model you can try.
 
 Everything should be fairly natural to prompt with the exception of Biggs and Wedge which were trained with "ff7r" as it if were their surname.
 
-Prompt guide:
+## Prompt guide:
+
+### Characters:
 
     cloud strife
     tifa lockhart
@@ -19,6 +23,10 @@ Prompt guide:
     aerith gainsborough
     biggs ff7r
     wedge ff7r
+    jessie rasberry
+
+### Scenery and objects
+
     in midgar city
     slums district of midgar city
     business district of midgar city
@@ -27,6 +35,7 @@ Prompt guide:
     shinra security officer holding an assault rifle
     rooftops of the midgar slums district
     food truck in the slums district of midgar
+    the bar inside seventh heaven bar
 
 You can mix and match all the above!  Try it out! 
 
