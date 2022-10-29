@@ -20,13 +20,9 @@ Finished model here: https://huggingface.co/panopstor/ff7r-stable-diffusion/blob
 
 You can recreate the above model by downloading the dataset or try your own.
 
-Dataset:
+Dataset: https://huggingface.co/panopstor/ff7r-stable-diffusion/blob/main/ted_bennett.zip
 
-    https://huggingface.co/panopstor/ff7r-stable-diffusion/blob/main/ted_bennett.zip
-
-Model:
-
-    https://huggingface.co/panopstor/ff7r-stable-diffusion/blob/main/ted_bennett_259step_13minutes.ckpt
+Model: https://huggingface.co/panopstor/ff7r-stable-diffusion/blob/main/ted_bennett_259step_13minutes.ckpt
 
 Unzip the file into your /training_samples folder.  It will create a subfolder on its own to work with the trainer.
 
