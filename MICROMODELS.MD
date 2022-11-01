@@ -24,7 +24,7 @@ Unzip the file into your /training_samples folder.  It will create a subfolder o
 
 On the command line, use v1-finetune_micro.yaml which is setup for this case.  You may wish to slightly change the REPEATS for your data set, with 31 images and repeasts 50 the output is fairly good and completes in just 13 minutes on an RTX 3090:
 
-    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume v1-5-micro.ckpt -n ted --gpus 0, --data_root training_samples\ted_bennett
+    python main.py --base configs/stable-diffusion/v1-finetune_micro.yaml -t --actual_resume sd_v1-5_vae.ckpt -n ted --gpus 0, --data_root training_samples\ted_bennett
 
 Prompt is simply "ted bennett"
 
