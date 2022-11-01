@@ -122,11 +122,10 @@ You are also free to move data in and out of your training_samples/MyProject fol
       target: main.DataModuleFromConfig
       params:
         batch_size: 6
-        num_workers: 8
 
-Batch size determine how many images are loaded and trained on in parallel. 6 will work on a 24GB GPU, 1 will only reduce VRAM use to about 20GB.  This will divide the number of steps used as well, but one epoch is still "repeats" number of trainings on each image.  
+Batch size determine how many images are loaded and trained on in parallel. 6 will work on a 24GB GPU, 1 will only reduce VRAM use to about 20GB.  The batch size will divide the number of steps used as well, but one epoch is still "repeats" number of trainings on each image.  
 
-I recommend not worrying about step count, but you can calcuate it per epoch as repeats * number_of_training_images / batch_size * (1+1/repeats).  For example, 500 training images with 10 repeats and batch size of six will perform 835 steps per epoch.
+I recommend not worrying about step count, but you can calculate it per epoch as repeats * number_of_training_images / batch_size * (1+1/repeats).  For example, 500 training images with 10 repeats and batch size of six will perform 835 steps per epoch.
 
 ### Additional notes
 
@@ -139,3 +138,7 @@ References:
 [Xaiver Xiao's DreamBooth implementation](https://github.com/XavierXiao/Dreambooth-Stable-Diffusion)
 
 [Kane Wallmann's captioning capability](https://github.com/kanewallmann/Dreambooth-Stable-Diffusion)
+
+# Troubleshooting
+
+Cuda out of memory:  You should have <600MB used before starting training to use batch size 6.  People have reported issues with Precision X1 running in the background and Microsoft's system tray weather app causing problems.  You can disable hardware acceleration in apps like Discord and VS Code to reduce VRAM use, and close as many Chrome tabs as you can bear. 
