@@ -1,5 +1,5 @@
 model:
-  base_learning_rate: 1.0e-07
+  base_learning_rate: 1.0e-6
   target: ldm.models.diffusion.ddpm.LatentDiffusion
   params:
     reg_weight: 1.0
@@ -19,7 +19,7 @@ model:
     use_ema: False
     embedding_reg_weight: 0.0
     unfreeze_model: True
-    model_lr: 1.0e-7
+    model_lr: 1.0e-6
 
     unet_config:
       target: ldm.modules.diffusionmodules.openaimodel.UNetModel
@@ -68,14 +68,14 @@ data:
   target: main.DataModuleFromConfig
   params:
     batch_size: 6
-    num_workers: 8 # should probably not exceed thread count on CPU, good idea to have more workers than batch_size
+    num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
         size: 512
         set: train
-        repeats: 5
+        repeats: 5  # suggested setting: 5 with 5000 images, 10 for 1000 images, 50 for 500 images, 100 for <50 images
     validation:
       target: ldm.data.personalized.PersonalizedBase
       params:
@@ -86,19 +86,21 @@ data:
 lightning:
   modelcheckpoint:
     params:
-      every_n_epochs: 1 
+      every_n_epochs: 1
+      #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
+      save_on_train_epoch_end: False # avoid dupes because it is saved after validation
   callbacks:
     image_logger:
       target: main.ImageLogger
       params:
-        batch_frequency: 300
+        batch_frequency: 200
         max_images: 16
         increase_log_steps: False
 
   trainer:
     benchmark: True
-    max_epochs: 1
-    max_steps: 99000  # better to end on epochs not steps
-    #check_val_every_n_epoch: 2 # can skip val every epoch if you want
+    max_epochs: 3 # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
+    max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
+    #check_val_every_n_epoch: 2 # can skip val every epoch if you want by increasing value
     #precision: 16 # need lightning 1.6+ ?? *WIP*
     #num_nodes: 2 # for multigpu *WIP*
