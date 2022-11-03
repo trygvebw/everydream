@@ -73,24 +73,23 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6
+    batch_size: 2
     num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        size: 384
-        repeats: 2
+        repeats: 1
+        flip_p: 0   # use 0.5 to randomly flip images each repeat, not recommended unless very low training data
+        debug_level: 0   # data loader debugging output 0,1,2
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 384
-        repeats: 0.4
+        repeats: 1
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 512
-        repeats: 0.2
+        repeats: 1
 
 lightning:
   modelcheckpoint:
@@ -98,6 +97,7 @@ lightning:
       every_n_epochs: 1
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
       save_last: True
+      save_top_k: 2
       filename: "{epoch:02d}-{step:05d}"
   callbacks:
     image_logger:
@@ -108,8 +108,8 @@ lightning:
         increase_log_steps: False
 
   trainer:
-    benchmark: True # improves performance, don't touch
-    max_epochs: 3 # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
+    benchmark: True
+    max_epochs: 3
     max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
     #precision: 16 # need lightning 1.6+ ?? *WIP*

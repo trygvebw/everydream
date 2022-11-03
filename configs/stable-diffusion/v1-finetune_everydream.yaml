@@ -73,7 +73,7 @@ data:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
         size: 512
-        repeats: 5  # suggested setting: 5 with 5000 images, 10 for 1000 images, 50 for 500 images, 70 for <50 images
+        repeats: 5   # rough suggestions: 5 with 5000 images, 15 for 1000 images, 50 for 500 images, 70 for <50 images
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
@@ -89,6 +89,7 @@ lightning:
   modelcheckpoint:
     params:
       every_n_epochs: 1
+      save_top_k: 2   # save the best N ckpts
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
       save_last: True
       filename: "{epoch:02d}-{step:05d}"
@@ -102,8 +103,8 @@ lightning:
 
   trainer:
     benchmark: True
-    max_epochs: 3 # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
-    max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
+    max_epochs: 3   # better to run several epochs and test your checkpoints!
+    max_steps: 99000   # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
     #precision: 16 # need lightning 1.6+ ?? *WIP*
     #num_nodes: 2 # for multigpu *WIP*
