@@ -84,6 +84,8 @@ def instantiate_from_config(config, **kwargs):
         elif config == "__is_unconditional__":
             return None
         raise KeyError("Expected key `target` to instantiate.")
+    print(f"Instantiating config for: {config['target']} with config:")
+    print(config.get("params", dict()))
     return get_obj_from_str(config["target"])(**config.get("params", dict()), **kwargs)
 
 

@@ -372,6 +372,16 @@ class DDPM(pl.LightningModule):
         self.log_dict(loss_dict_no_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True)
         self.log_dict(loss_dict_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
+    @torch.no_grad()
+    def test_step(self, batch, batch_idx):
+        pass # TODO
+        # _, loss_dict_no_ema = self.shared_step(batch)
+        # with self.ema_scope():
+        #     _, loss_dict_ema = self.shared_step(batch)
+        #     loss_dict_ema = {key + '_ema': loss_dict_ema[key] for key in loss_dict_ema}
+        # self.log_dict(loss_dict_no_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+        # self.log_dict(loss_dict_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+
     def on_train_batch_end(self, *args, **kwargs):
         if self.use_ema:
             self.model_ema(self.model)
@@ -435,7 +445,6 @@ class LatentDiffusion(DDPM):
     def __init__(self,
                  first_stage_config,
                  cond_stage_config,
-                 #personalization_config, TI not used
                  num_timesteps_cond=None,
                  cond_stage_key="image",
                  cond_stage_trainable=False,
@@ -444,7 +453,6 @@ class LatentDiffusion(DDPM):
                  conditioning_key=None,
                  scale_factor=1.0,
                  scale_by_std=False,
-                 reg_weight = 1.0,
                  *args, **kwargs):
         
         self.num_timesteps_cond = default(num_timesteps_cond, 1)
@@ -556,15 +564,7 @@ class LatentDiffusion(DDPM):
             model = instantiate_from_config(config)
             self.cond_stage_model = model
             
-    
-    # def instantiate_embedding_manager(self, config, embedder):
-    #     model = instantiate_from_config(config, embedder=embedder)
-
-    #     if config.params.get("embedding_manager_ckpt", None): # do not load if missing OR empty string
-    #         model.load(config.params.embedding_manager_ckpt)
-        
-    #     return model
-
+            
     def _get_denoise_row_from_list(self, samples, desc='', force_no_decoder_quantization=False):
         denoise_row = []
         for zd in tqdm(samples, desc=desc):
@@ -1410,24 +1410,15 @@ class LatentDiffusion(DDPM):
     def configure_optimizers(self):
         lr = self.learning_rate
 
-        if self.embedding_manager is not None: # If using textual inversion
-            embedding_params = list(self.embedding_manager.embedding_parameters())
+        params = list(self.model.parameters())
+        if self.cond_stage_trainable:
+            print(f"{self.__class__.__name__}: Also optimizing conditioner params!")
+            params = params + list(self.cond_stage_model.parameters())
+        if self.learn_logvar:
+            print('Diffusion model optimizing logvar')
+            params.append(self.logvar)
 
-            if self.unfreeze_model: # Are we allowing the base model to train? If so, set two different parameter groups.
-                model_params = list(self.cond_stage_model.parameters()) + list(self.model.parameters())
-                opt = torch.optim.AdamW([{"params": embedding_params, "lr": lr}, {"params": model_params}], lr=self.model_lr)
-            else: # Otherwise, train only embedding
-                opt = torch.optim.AdamW(embedding_params, lr=lr)
-        else:
-            params = list(self.model.parameters())
-            if self.cond_stage_trainable:
-                print(f"{self.__class__.__name__}: Also optimizing conditioner params!")
-                params = params + list(self.cond_stage_model.parameters())
-            if self.learn_logvar:
-                print('Diffusion model optimizing logvar')
-                params.append(self.logvar)
-
-            opt = torch.optim.AdamW(params, lr=lr)
+        opt = torch.optim.AdamW(params, lr=lr)
 
         return opt
 

@@ -2,7 +2,6 @@ model:
   base_learning_rate: 1.0e-6
   target: ldm.models.diffusion.ddpm.LatentDiffusion
   params:
-    reg_weight: 1.0
     linear_start: 0.00085
     linear_end: 0.0120
     num_timesteps_cond: 1
@@ -17,9 +16,16 @@ model:
     monitor: val/loss_simple_ema
     scale_factor: 0.18215
     use_ema: False
-    embedding_reg_weight: 0.0
     unfreeze_model: True
     model_lr: 1.0e-6
+    # scheduler_config: # 10000 warmup steps
+    #   target: ldm.lr_scheduler.LambdaLinearScheduler
+    #   params:
+    #     warm_up_steps: [ 10000 ]
+    #     cycle_lengths: [ 10000000000000 ] # incredibly large number to prevent corner cases
+    #     f_start: [ 1.e-6 ]
+    #     f_max: [ 1. ]
+    #     f_min: [ 1. ]
 
     unet_config:
       target: ldm.modules.diffusionmodules.openaimodel.UNetModel
@@ -74,21 +80,25 @@ data:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
         size: 512
-        set: train
-        repeats: 50  # try ~50 for micro models
+        repeats: 50  # try ~50-100 for micro models with 20-50 training images with 1-2 epochs
     validation:
-      target: ldm.data.personalized.PersonalizedBase
+      target: ldm.data.ed_validate.EDValidateBatch
+      params:
+        size: 384
+        repeats: 0.4
+    test:
+      target: ldm.data.ed_validate.EDValidateBatch
       params:
         size: 512
-        set: val
-        repeats: 1
+        repeats: 0.2
 
 lightning:
   modelcheckpoint:
     params:
       every_n_epochs: 1
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
-      save_on_train_epoch_end: False # avoid dupes because it is saved after validation
+      save_last: False
+      filename: "{epoch:02d}-{step:05d}"
   callbacks:
     image_logger:
       target: main.ImageLogger
@@ -101,6 +111,6 @@ lightning:
     benchmark: True
     max_epochs: 1 # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
     max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
-    #check_val_every_n_epoch: 2 # can skip val every epoch if you want by increasing value
+    check_val_every_n_epoch: 1
     #precision: 16 # need lightning 1.6+ ?? *WIP*
     #num_nodes: 2 # for multigpu *WIP*

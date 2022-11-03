@@ -5,6 +5,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 from pathlib import Path
+from ldm.data.data_loader import DataLoader as dl
 
 class EveryDreamBatch(Dataset):
     def __init__(self,
@@ -13,36 +14,19 @@ class EveryDreamBatch(Dataset):
                  repeats=10,
                  interpolation="bicubic",
                  flip_p=0.0,
-                 set="train",
-                 center_crop=False,
-                 reg=False
+                 center_crop=False
                  ):
 
         self.data_root = data_root
-        self.reg = reg
-        self.image_paths = []
 
-        classes = os.listdir(self.data_root)
-        print(f"**** Loading data set: data_root: {data_root}, as set: {set}")
-
-        for cl in classes:
-            class_path = os.path.join(self.data_root, cl)
-            for file_path in os.listdir(class_path):
-                image_path = os.path.join(class_path, file_path)
-                self.image_paths.append(image_path)
-
-        import random
-        random.Random(555).shuffle(self.image_paths)
+        self.image_paths = dl(data_root=data_root, quiet=False).get_all_images()
         
-        print(f"**** Loaded {len(self.image_paths)} images fromt {self.data_root}")
-
         self.num_images = len(self.image_paths)
         self._length = self.num_images
 
         self.center_crop = center_crop
 
-        if set == "train":
-            self._length = self.num_images * repeats
+        self._length = self.num_images * repeats
 
         self.size = size
         self.interpolation = {"linear": PIL.Image.LINEAR,
