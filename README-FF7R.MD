@@ -10,7 +10,7 @@ This fine tuning includes over a dozen concepts trained in 1636 images with indi
 
 See the Hugging Face link for more info and a downloadable model you can try.
 
-Everything should be fairly natural to prompt with the exception of Biggs and Wedge which were trained with "ff7r" as it if were their surname.
+Everything should be fairly natural to prompt with the exception of Biggs and Wedge which were trained with "ff7r" as it if were their surname.  No other weird tokens are required.
 
 ## Prompt guide:
 
