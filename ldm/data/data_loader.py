@@ -28,7 +28,7 @@ class DataLoader():
         for f in os.listdir(recurse_root):
             current = os.path.join(recurse_root, f)
             # extension does not end in ini
-            if os.path.isfile(current) and not f.endswith(".ini"):
+            if os.path.isfile(current) and not current.endswith(".ini"):
                 i += 1
                 self.image_paths.append(current)
 
