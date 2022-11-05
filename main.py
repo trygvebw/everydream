@@ -251,7 +251,7 @@ class DataModuleFromConfig(pl.LightningDataModule):
             init_fn = None
         dataset = self.datasets["train"]
         return DataLoader(dataset, batch_size=self.batch_size,
-                          num_workers=self.num_workers, shuffle=False if is_iterable_dataset else True,
+                          num_workers=self.num_workers, shuffle=False,
                           worker_init_fn=init_fn)
 
     def _val_dataloader(self, shuffle=False):
@@ -263,7 +263,7 @@ class DataModuleFromConfig(pl.LightningDataModule):
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           worker_init_fn=init_fn,
-                          shuffle=shuffle)
+                          shuffle=False)
 
     def _test_dataloader(self, shuffle=False):
         is_iterable_dataset = isinstance(self.datasets['train'], Txt2ImgIterableBaseDataset)

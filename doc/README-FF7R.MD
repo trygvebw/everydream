@@ -52,17 +52,17 @@ FF7R 5.1 was trained on EveryDream with 1636 images training and 1636 images of 
 
 These are generated at CFG 7.5, no prompt weighting!
 
-![a](./demo/mega_test01_thumb.jpg)
+![a](../demo/mega_test01_thumb.jpg)
 
 Minimal bleeding in photoreal content. **Improved cropping over even Runway 1.5 in many of the cars and one of the paintings.**  Less bleeding of the Final Fantasy look into "cg character" from 4.1 to 5.1.
 
 New characters tests, these are generated at CFG 7.5, no prompt weighting!
 
-![a](./demo/mega_test_characters01_sm.jpg)
+![a](../demo/mega_test_characters01_sm.jpg)
 
 Wedge and Biggs are improved substantially by added data.  Aerith has fewer halos and red shadows compared to 4.1 *without having to lower CFG at inference time.*
 
 Celebrity faces test for FF7R 5.1:
-![b](./demo/celeb_test_ff7r51.jpg)
+![b](../demo/celeb_test_ff7r51.jpg)
 
 No one looks like a Final Fantasy character, which is what we want.

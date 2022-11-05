@@ -66,30 +66,29 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6
+    batch_size: 6  # ** MUST EQUAL BATCH SIZE BELOW FOR EveryDreamBatch: PARAMS: BATCH_SIZE **
     num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        size: 512
         repeats: 5   # rough suggestions: 5 with 5000 images, 15 for 1000 images, 50 for 500 images, 70 for <50 images
+        flip_p: 0   # use 0.5 to randomly flip images each repeat, not recommended unless very low training data < 20
+        batch_size: 6  # ** MUST EQUAL BATCH SIZE ABOVE FOR DataModuleFromConfig:  PARAMS: BATCH_SIZE  **
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 512
         repeats: 0.4
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 512
         repeats: 0.2
 
 lightning:
   modelcheckpoint:
     params:
-      every_n_epochs: 1
-      save_top_k: 2   # save the best N ckpts
+      every_n_epochs: 1  # produce a ckpt every epoch, leave 1!
+      save_top_k: 3   # save the best N ckpts
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
       save_last: True
       filename: "{epoch:02d}-{step:05d}"
@@ -103,8 +102,7 @@ lightning:
 
   trainer:
     benchmark: True
-    max_epochs: 3   # better to run several epochs and test your checkpoints!
+    max_epochs: 4   # better to run several epochs and test your checkpoints!  Try 4-5, you get a checkpoint every epoch to test! 
     max_steps: 99000   # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
-    #precision: 16 # need lightning 1.6+ ?? *WIP*
-    #num_nodes: 2 # for multigpu *WIP*
+    gpus: 0,
