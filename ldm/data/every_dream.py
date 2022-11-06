@@ -1,9 +1,11 @@
 import numpy as np
 from torch.utils.data import Dataset
-from torchvision import transforms
 from pathlib import Path
 from ldm.data.data_loader import DataLoaderMultiAspect as dlma
 import math
+import ldm.data.dl_singleton as dls
+from PIL import Image
+import gc
 
 class EveryDreamBatch(Dataset):
     def __init__(self,
@@ -11,43 +13,59 @@ class EveryDreamBatch(Dataset):
                  repeats=10,
                  flip_p=0.0,
                  debug_level=0,
-                 batch_size=1
+                 batch_size=1,
+                 set='train'
                  ):
-        print(f"EveryDreamBatch batch size: {batch_size}")
+        #print(f"EveryDreamBatch batch size: {batch_size}")
         self.data_root = data_root
         self.batch_size = batch_size
-
-        self.image_caption_pairs = dlma(data_root=data_root, debug_level=debug_level, batch_size=self.batch_size).get_all_images()
+        self.flip_p = flip_p
         
-        self.num_images = len(self.image_caption_pairs)
+        if not dls.shared_dataloader:
+            print(" * Creating new dataloader singleton")
+            dls.shared_dataloader = dlma(data_root=data_root, debug_level=debug_level, batch_size=self.batch_size, flip_p=self.flip_p)
+        
+        self.image_train_items = dls.shared_dataloader.get_all_images()
+        #print(f" * EDB Example {self.image_train_items[0]}")
+        
+        self.num_images = len(self.image_train_items)
 
         self._length = math.trunc(self.num_images * repeats)
 
-        self.flip = transforms.RandomHorizontalFlip(p=flip_p)
-
-        print(f" * Training steps: {self._length / batch_size}")
+        print()
+        print(f" ** Trainer Set: {set}, steps: {self._length / batch_size:.0f}, num_images: {self.num_images}, batch_size: {self.batch_size}, length w/repeats: {self._length}")
+        print()
 
     def __len__(self):
         return self._length
 
     def __getitem__(self, i):
         idx = i % self.num_images
-        example = self.get_image(self.image_caption_pairs[idx])
+        #example = self.get_image(self.image_caption_pairs[idx])
+        image_train_item = self.image_train_items[idx]
+        #print(f" *** example {example}")
+
+        hydrated_image_train_item = image_train_item.hydrate()
+
+        example = self.get_image_for_trainer(hydrated_image_train_item)
         return example
 
-    def get_image(self, image_caption_pair):
+    def unload_images_over(self, limit):
+        print(f" ********** Unloading images over limit {limit}")
+        i = 0
+        while i < len(self.image_train_items):
+            print(self.image_train_items[i])            
+            if i > limit:
+                self.image_train_items[i][0] = Image.new(mode='RGB', size=(1, 1))
+            i += 1
+        gc.collect()
+
+    def get_image_for_trainer(self, image_train_item):
         example = {}
 
-        image = image_caption_pair[0]
+        image_train_tmp = image_train_item.as_formatted()
 
-        if not image.mode == "RGB":
-            image = image.convert("RGB")
-
-        identifier = image_caption_pair[1]
-
-        image = self.flip(image)
-        image = np.array(image).astype(np.uint8)
-        example["image"] = (image / 127.5 - 1.0).astype(np.float32)
-        example["caption"] = identifier
+        example["image"] = image_train_tmp.image
+        example["caption"] = image_train_tmp.caption
 
         return example
