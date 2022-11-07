@@ -8,7 +8,7 @@ If you find this tool useful, please consider subscribing to the project on [Pat
 
 ## Main features
 
-* **Supervised Learning** - Caption support reads the filename for each image as opposed to just token/class of dream booth implementations.  This also means you can train multiple subjects, multiple art styles, or whatever multiple-anything-you-want in one training session into one model, including the context around your characters, like their clothing, background, cityscapes, or the common artstyle shared across them.  
+* **Supervised Learning** - Caption support reads the filename (or if present a .txt file) for each image as opposed to just token/class of dream booth implementations.  This also means you can train multiple subjects, multiple art styles, or whatever multiple-anything-you-want in one training session into one model, including the context around your characters, like their clothing, background, cityscapes, or the common artstyle shared across them.  
 * **Multiple Aspect Ratios** - Supports everything from 1:1 (square) to 4:1 (super tall) or 1:4 (super wide) all at the same time with no fuss.
 * **Auto-Scaling** - Automatically resizes the image to the aspect ratios of the model.  No need to crop or resize images.  Just throw them in and let the code do the work. 
 * **Recursive load** - Loads all images in a folder and subfolders so you can organize your data set however you like. 
@@ -42,7 +42,7 @@ You can scale up or down from there.  The code is designed to be flexible by adj
 
 ## Image Captioning
 
-This trainer is built to use the filenames of your images as "captions" on a per-image basis, *so the entire Latent Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images, or write meaningful filenames for your images.  This is a big step forward in training the model and will help it learn more effectively.  
+This trainer is built to use the filenames of your images as "captions" on a per-image basis, or reads a .txt file that is in the same folder with the same filename, *so the entire Latent Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images, or write meaningful filenames for your images.  This is a big step forward in training the model and will help it learn more effectively.
 
 ### Formatting
 
@@ -54,6 +54,21 @@ The filenames are using for captioning, with a split on underscore so you can ha
     john jacob jingleheimerschmidt sitting on a bench in a park with trees in the background_(2).png
 
 In the 3rd and 4th example above, the _(1) and _(2) are ignored and not considered by the trainer.  This is useful if you end up with duplicate filenames but different image contents for whatever reason, but that is generally a rare case.  
+
+The trainer will also look for a .txt file in the same folder with the same filename as the image.  *If it finds one, it will use that instead of the filename.*  You can mix and match if you want to use filenames or .txt files, it will prefer the .txt file and fall back to the image filename if no .txt is present
+
+    1234myphoto.webp
+    1234myphoto.txt
+    a pencil drawing of john jacob jingleheimerscmidt.jpg
+    big_john.png
+    big_john.txt
+    random.txt
+
+In the above example, "1234myphoto.txt" could contain "John Jacob Jingleheimerschmidt riding a bicycle" and it will apply that caption to 1234myphoto.webp, and "big_john.txt" could contain "big john mcarthy in a black shirt wearing black gloves standing in the octagon".
+  
+Since no .txt file is present for "a pencil drawing of john jacob jingleheimerscmidt.jpg", it will use the filename as the caption which would be "a pencil drawing of john jacob jingleheimerscmidt".
+
+random.txt does not have a matching image, so it will be ignored.
 
 ### Data set organization
 
