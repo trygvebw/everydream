@@ -52,7 +52,6 @@ class DataLoaderMultiAspect():
                     identifier = caption_from_filename
                     pass
             else:
-                #print(f"base_image_filename: {base_image_filename}")
                 identifier = caption_from_filename
             
             image = Image.open(pathname)
@@ -63,7 +62,6 @@ class DataLoaderMultiAspect():
 
             image_train_item = ImageTrainItem(image=None, caption=identifier, target_wh=target_wh, pathname=pathname, flip_p=flip_p)
 
-            print(f" **********{image_train_item.caption}")
             decorated_image_train_items.append(image_train_item)
 
         return decorated_image_train_items
