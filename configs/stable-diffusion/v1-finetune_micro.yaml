@@ -73,33 +73,31 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6  # ** MUST EQUAL BATCH SIZE BELOW FOR TRAIN **
+    batch_size: 6  
     num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        repeats: 25   # try ~50-100 for micro models with 20-50 training images with 1-2 epochs
+        repeats: 50   # for micro models with 20-50 training images of one subject, try 30-60 repeats with 3-4 epochs (max_epochs below)
         flip_p: 0   # use 0.5 to randomly flip images each repeat, not recommended unless very low training data < 20
-        batch_size: 6   # ** MUST EQUAL BATCH SIZE ABOVE FOR DataModuleFromConfig **
+        debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio images
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        repeats: 1
-        batch_size: 1  # don't touch
+        repeats: 3
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
         repeats: 1
-        batch_size: 1  # don't touch
 
 lightning:
   modelcheckpoint:
     params:
-      every_n_epochs: 1
+      every_n_epochs: 1  # produce a ckpt every epoch, leave 1!
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
+      save_top_k: 3  # save the best N ckpts according to loss, can reduce to save disk space but suggest at LEAST 2
       save_last: True
-      save_top_k: 3
       filename: "{epoch:02d}-{step:05d}"
   callbacks:
     image_logger:
@@ -111,7 +109,7 @@ lightning:
 
   trainer:
     benchmark: True
-    max_epochs: 3   # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
+    max_epochs: 4   # suggest 3-4+ and adjust repeats above, this will give you a few ckpts to test
     max_steps: 99000   # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
     gpus: 0,

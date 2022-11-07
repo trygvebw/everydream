@@ -4,6 +4,7 @@ from torchvision import transforms
 from ldm.data.data_loader import DataLoaderMultiAspect as dlma
 import math
 import ldm.data.dl_singleton as dls
+
 class EDValidateBatch(Dataset):
     def __init__(self,
                  data_root,
@@ -13,48 +14,41 @@ class EDValidateBatch(Dataset):
                  batch_size=1,
                  set='val',
                  ):
-
         self.data_root = data_root
         self.batch_size = batch_size
 
         if not dls.shared_dataloader:
             print("Creating new dataloader singleton")
-            dls.shared_dataloader = dlma(data_root=data_root, debug_level=debug_level, batch_size=self.batch_size)
+            dls.shared_dataloader = dlma(data_root=data_root, debug_level=debug_level, batch_size=self.batch_size, flip_p=flip_p)
             
-        self.image_caption_pairs = dls.shared_dataloader.get_all_images()
+        self.image_train_items = dls.shared_dataloader.get_all_images()
         
-        self.num_images = len(self.image_caption_pairs)
+        self.num_images = len(self.image_train_items)
 
         self._length = max(math.trunc(self.num_images * repeats), batch_size) - self.num_images % self.batch_size
 
         print()
-        print(f" ** Validation Set: {set}, num_images: {self.num_images}, length: {self._length}, repeats: {repeats}, batch_size: {self.batch_size}, ")
-        print(f" ** Validation steps: {self._length / batch_size:.0f}")
+        print(f" ** Validation Set: {set}, steps: {self._length / batch_size:.0f}, repeats: {repeats} ")
         print()
-
-        self.flip = transforms.RandomHorizontalFlip(p=flip_p)
 
     def __len__(self):
         return self._length
 
     def __getitem__(self, i):
-        idx = i % len(self.image_caption_pairs)
-        example = self.get_image(self.image_caption_pairs[idx])
+        idx = i % self.num_images
+        image_train_item = self.image_train_items[idx]
+
+        example = self.__get_image_for_trainer(image_train_item)
         return example
 
-    def get_image(self, image_caption_pair):
+    @staticmethod
+    def __get_image_for_trainer(image_train_item):
         example = {}
 
-        image = image_caption_pair[0]
+        image_train_tmp = image_train_item.hydrate()
 
-        if not image.mode == "RGB":
-            image = image.convert("RGB")
-
-        identifier = image_caption_pair[1]
-
-        image = self.flip(image)
-        image = np.array(image).astype(np.uint8)
-        example["image"] = (image / 127.5 - 1.0).astype(np.float32)
-        example["caption"] = identifier
+        example["image"] = image_train_tmp.image
+        example["caption"] = image_train_tmp.caption
 
         return example
+        

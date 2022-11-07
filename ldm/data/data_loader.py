@@ -1,6 +1,5 @@
 import os
 from PIL import Image
-import gc
 import random
 from ldm.data.image_train_item import ImageTrainItem
 
@@ -24,11 +23,9 @@ class DataLoaderMultiAspect():
 
         self.__recurse_data_root(self=self, recurse_root=data_root)
         random.Random(seed).shuffle(self.image_paths)
-        prepared_train_data = self.__prescan_images(debug_level, self.image_paths, flip_p)
+        prepared_train_data = self.__prescan_images(debug_level, self.image_paths, flip_p) # ImageTrainItem[]
         self.image_caption_pairs = self.__bucketize_images(prepared_train_data, batch_size=batch_size, debug_level=debug_level)
         print(f" * DLMA Example {self.image_caption_pairs[0]} images")
-
-        gc.collect()
 
     def get_all_images(self):
         return self.image_caption_pairs
@@ -54,7 +51,7 @@ class DataLoaderMultiAspect():
             # else:
             #     identifier = parts[0]
 
-            identifier = parts[0]
+            identifier = parts[0].split(".")[0]
             
             image = Image.open(pathname)
             width, height = image.size
@@ -64,26 +61,24 @@ class DataLoaderMultiAspect():
 
             image_train_item = ImageTrainItem(image=None, caption=identifier, target_wh=target_wh, pathname=pathname, flip_p=flip_p)
 
-            # put placeholder image in the list and return meta data
             decorated_image_train_items.append(image_train_item)
         return decorated_image_train_items
 
     @staticmethod
-    def __bucketize_images(prepared_train_data, batch_size=1, debug_level=0):
+    def __bucketize_images(prepared_train_data: list, batch_size=1, debug_level=0):
         # TODO: this is not terribly efficient but at least linear time
         buckets = {}
 
         for image_caption_pair in prepared_train_data:
-            image = image_caption_pair.image
-            width, height = image.size
+            target_wh = image_caption_pair.target_wh
 
-            if (width, height) not in buckets:
-                buckets[(width, height)] = []
-            buckets[(width, height)].append(image_caption_pair) # [image, identifier, target_aspect, closest_aspect_wh[w,h], pathname]
+            if (target_wh[0],target_wh[1]) not in buckets:
+                buckets[(target_wh[0],target_wh[1])] = []
+            buckets[(target_wh[0],target_wh[1])].append(image_caption_pair) 
         
         print(f" ** Number of buckets: {len(buckets)}")
 
-        if len(buckets) > 1: # don't bother truncating if everything is the same aspect ratio
+        if len(buckets) > 1: 
             for bucket in buckets:
                 truncate_count = len(buckets[bucket]) % batch_size
                 current_bucket_size = len(buckets[bucket])
@@ -99,8 +94,6 @@ class DataLoaderMultiAspect():
 
     @staticmethod
     def __recurse_data_root(self, recurse_root):
-        i = 0
-
         for f in os.listdir(recurse_root):
             current = os.path.join(recurse_root, f)
             # get file ext
@@ -108,7 +101,6 @@ class DataLoaderMultiAspect():
             if os.path.isfile(current):
                 ext = os.path.splitext(f)[1]
                 if ext in ['.jpg', '.jpeg', '.png', '.bmp', '.webp']:
-                    i += 1
                     self.image_paths.append(current)
 
         sub_dirs = []
@@ -120,23 +112,3 @@ class DataLoaderMultiAspect():
 
         for dir in sub_dirs:
             self.__recurse_data_root(self=self, recurse_root=dir)
-
-    # @staticmethod
-    # def hydrate_image(self, image_path, target_aspect, closest_aspect_wh):
-    #     image = Image.open(example[4]) # 5 is the path
-    #     print(image)
-    #     width, height = image.size
-    #     image_aspect = width / height
-    #     target_aspect = width / height
-
-    #     if example[3][0] == example[3][1]:
-    #         pass
-    #     if target_aspect < image_aspect:
-    #         crop_width = (width - (width * example[3][0] / example[3][1])) / 2
-    #         image = image.crop((crop_width, 0, width - crop_width, height))
-    #     else:
-    #         crop_height = (height - (width * example[3][1] / example[3][0])) / 2
-    #         image = image.crop((0, crop_height, width, height - crop_height))
-
-    #     example[0] = image.resize((example[3][0], example[3][1]), Image.BICUBIC)
-    #     return example

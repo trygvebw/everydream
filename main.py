@@ -216,17 +216,25 @@ class DataModuleFromConfig(pl.LightningDataModule):
         self.num_workers = num_workers if num_workers is not None else batch_size * 2
         self.use_worker_init_fn = use_worker_init_fn
         if train is not None:
+            train.params.batch_size = self.batch_size
+            train.params.set = 'train'
             self.dataset_configs["train"] = train
         
         self.train_dataloader = self._train_dataloader
         
         if validation is not None:
+            validation.params.batch_size = self.batch_size
+            validation.params.set = 'val'
+            print(f" ****** validation: {validation}")
             self.dataset_configs["validation"] = validation
             self.val_dataloader = partial(self._val_dataloader, shuffle=shuffle_val_dataloader)
         if test is not None:
+            test.params.batch_size = self.batch_size
+            test.params.set = 'test'
             self.dataset_configs["test"] = test
             self.test_dataloader = partial(self._test_dataloader, shuffle=shuffle_test_loader)
         if predict is not None:
+            predict.params.batch_size = self.batch_size
             self.dataset_configs["predict"] = predict
             self.predict_dataloader = self._predict_dataloader
         self.wrap = wrap
@@ -300,7 +308,7 @@ class SetupCallback(Callback):
 
     def on_keyboard_interrupt(self, trainer, pl_module):
         if trainer.global_rank == 0:
-            print("Summoning checkpoint.")
+            print("Keyboard interrupt. Summoning checkpoint.")
             ckpt_path = os.path.join(self.ckptdir, "last.ckpt")
             trainer.save_checkpoint(ckpt_path)
 
@@ -603,14 +611,13 @@ if __name__ == "__main__":
                 "dirpath": ckptdir,
                 "filename": "{epoch:03}-{global_step:05}",
                 "verbose": True,
-                "save_last": True,
             }
         }
 
         if hasattr(model, "monitor"):
             print(f"Monitoring {model.monitor} as checkpoint metric.")
             default_modelckpt_cfg["params"]["monitor"] = model.monitor
-            #default_modelckpt_cfg["params"]["save_top_k"] = 3
+            #default_modelckpt_cfg["params"]["save_top_k"] = 3 #moved to yaml
 
         if "modelcheckpoint" in lightning_config:
             modelckpt_cfg = lightning_config.modelcheckpoint
@@ -715,8 +722,9 @@ if __name__ == "__main__":
         def melk(*args, **kwargs):
             # run all checkpoint hooks
             if trainer.global_rank == 0:
-                print("Summoning checkpoint.")
-                ckpt_path = os.path.join(ckptdir, "last.ckpt")
+                last_ckpt_name = "last.ckpt"
+                print(f"Training halted. Summoning checkpoint as {last_ckpt_name}")
+                ckpt_path = os.path.join(ckptdir, last_ckpt_name)
                 trainer.save_checkpoint(ckpt_path)
 
 
@@ -760,5 +768,5 @@ if __name__ == "__main__":
             os.makedirs(os.path.split(dst)[0], exist_ok=True)
             os.rename(logdir, dst)
         if trainer.global_rank == 0:
-            print("Training complete. max_steps or max_epochs, reached or we blew up.")
+            print("Training complete. max_steps or max_epochs reached, or we blew up.")
             print(trainer.profiler.summary())
