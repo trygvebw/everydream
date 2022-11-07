@@ -42,14 +42,14 @@ class DataLoaderMultiAspect():
             # if os.path.exists(txt_filename):
             #     try:
             #         with open(txt_filename, 'r') as f:
-            #             identifier = f.read()
+            #             identifier = f.readline()
             #             identifier.rstrip()
             #     except:
             #         print(f" *** Error reading {txt_filename} to get caption")
             #         identifier = parts[0]
             #         pass
             # else:
-            #     identifier = parts[0]
+            #     identifier = parts[0]  # uncomment block then remove next line
 
             identifier = parts[0].split(".")[0]
             
@@ -103,7 +103,7 @@ class DataLoaderMultiAspect():
                 ext = os.path.splitext(f)[1]
                 if ext in ['.jpg', '.jpeg', '.png', '.bmp', '.webp']:
                     self.image_paths.append(current)
-                    
+
         sub_dirs = []
 
         for d in os.listdir(recurse_root):
