@@ -1,4 +1,4 @@
-ame: everydream
+name: everydream
 channels:
   - pytorch
   - defaults
