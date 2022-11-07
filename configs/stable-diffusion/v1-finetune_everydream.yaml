@@ -11,12 +11,11 @@ model:
     cond_stage_key: caption
     image_size: 64
     channels: 4
-    cond_stage_trainable: true   # Note: different from the one we trained before
+    cond_stage_trainable: true
     conditioning_key: crossattn
     monitor: val/loss_simple_ema
     scale_factor: 0.18215
     use_ema: False
-    embedding_reg_weight: 0.0
     unfreeze_model: True
     model_lr: 1.0e-6
 
@@ -66,44 +65,42 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6
+    batch_size: 6  # 6 is possible on 24GB, prefer highest possible
     num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        size: 512
-        repeats: 5  # suggested setting: 5 with 5000 images, 10 for 1000 images, 50 for 500 images, 70 for <50 images
+        repeats: 10   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
+        debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio image batching
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 512
         repeats: 0.4
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 512
         repeats: 0.2
 
 lightning:
   modelcheckpoint:
     params:
-      every_n_epochs: 1
+      every_n_epochs: 1  # produce a ckpt every epoch, leave 1!
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
+      save_top_k: 4   # save the best N ckpts according to loss, can reduce to save disk space but suggest at LEAST 2, more if you have max_epochs below higher!
       save_last: True
       filename: "{epoch:02d}-{step:05d}"
   callbacks:
     image_logger:
       target: main.ImageLogger
       params:
-        batch_frequency: 200
+        batch_frequency: 250
         max_images: 16
         increase_log_steps: False
 
   trainer:
     benchmark: True
-    max_epochs: 3 # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
-    max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
+    max_epochs: 4   # better to run several epochs and test your checkpoints!  Try 4-5, you get a checkpoint every epoch to test! 
+    max_steps: 99000   # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
-    #precision: 16 # need lightning 1.6+ ?? *WIP*
-    #num_nodes: 2 # for multigpu *WIP*
+    gpus: 0,

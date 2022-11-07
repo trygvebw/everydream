@@ -1,25 +1,48 @@
 # Every Dream trainer for Stable Diffusion
 
-This is a bit of a divergence from other fine tuning methods out there for Stable Diffusion.  No more "DreamBooth" stuff like tokens, classes, or regularization, though I thank the DreamBooth training community for sharing information and techniques.  Yet, it is time to move on to explore more capability in fine tuning.
+This is a bit of a divergence from other fine tuning methods out there for Stable Diffusion.  This is a general purpose fine-tuning codebase meant to bridge the gap from small scales (ex Texual Inversion, Dreambooth) and large scale (i.e. full fine tuning on large clusters of GPUs).  It is designed to run on a local 24GB Nvidia GPU, currently the 3090, 3090 Ti, 4090, or other various Quadrios and datacenter cards (A5500, A100, etc). 
+
+Please join us on Discord! https://discord.gg/uheqxU6sXN
+
+If you find this tool useful, please consider subscribing to the project on [Patreon](https://www.patreon.com/everydream) or buy me a [Ko-fi](https://ko-fi.com/everydream). The tools are open source and free, but it is a lot of work to maintain and develop and donations will allow me to expand capabilties and spend more time on the project.
+
+## Main features
+
+* **Supervised Learning** - Caption support reads the filename for each image as opposed to just token/class of dream booth implementations.  This also means you can train multiple subjects, multiple art styles, or whatever multiple-anything-you-want in one training session into one model, including the context around your characters, like their clothing, background, cityscapes, or the common artstyle shared across them.  
+* **Multiple Aspect Ratios** - Supports everything from 1:1 (square) to 4:1 (super tall) or 1:4 (super wide) all at the same time with no fuss.
+* **Auto-Scaling** - Automatically resizes the image to the aspect ratios of the model.  No need to crop or resize images.  Just throw them in and let the code do the work. 
+* **Recursive load** - Loads all images in a folder and subfolders so you can organize your data set however you like. 
 
 ## Onward to Every Dream
-This trainer is focused on enabling fine tuning with new training data plus weaving in original, ground truth images scraped from the web via Laion dataset or other publically available ML image sets.  Compared to DreamBooth, concepts such as regularization have been removed in favor of adding back ground truth data (ex. Laion), and token/class concepts are removed and replaced by per-image captioning for training, more or less equal to how Stable Diffusion was trained itself. This is a shift back to the original training code and methodology for fine tuning for general cases.
+This trainer is focused on enabling fine tuning with new training data plus weaving in original, ground truth images scraped from the web via Laion dataset or other publically available ML image sets.  Compared to DreamBooth, concepts such as regularization have been removed in favor of support for adding back ground truth data (ex. Laion), and token/class concepts are removed and replaced by per-image captioning for training, more or less equal to how Stable Diffusion was trained itself. This is a shift back to the original training code and methodology for fine tuning for general cases.
 
 To get the most out of this trainer, you will need to curate a data set to be trained in addition to collect ground truth images to help preserve the model integrity and character.  Luckily, there are additional tools below to help enable that, and will grow over time.
+
+Check out the tools repo here: [Every Dream Tools](https://www.github.com/victorchall/everydream) for automated captioning and Laion web scraper tools.
+
+## Installation
+
+You will need Anaconda or Miniconda.
+
+1. Clone the repo:  `git clone https://www.github.com/victorchall/everydream-trainer.git`
+2. Create a new conda environment with the provided environment.yml file: `conda env create -f environment.yml`
+3. Activate the environment: `conda activate everydream`
+
+*Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yml file.  I will be updating packages as work progresses as well.*
 
 ## Techniques
 
 This is a general purpose fine tuning app.  You can train large or small scale with it and everything in between.
 
-Check out [MICROMODELS.MD](./MICROMODELS.MD) for a quickstart guide and example for quick model creation with a small data set.  It is suited for training one or two subects with 20-50 images with no preservation in 10-25 minutes.
+Check out [MICROMODELS.MD](./doc/MICROMODELS.MD) for a quickstart guide and example for quick model creation with a small data set.  It is suited for training one or two subects with 20-50 images each with no preservation in 10-30 minutes depending on your content.
 
-Or [README-FF7R.MD](./README-FF7R.MD) for large scale training of many characters with model preservation.
+Or [README-FF7R.MD](./doc/README-FF7R.MD) for large scale training of many characters with model preservation.
 
-More info coming soon on even larger training.
+You can scale up or down from there.  The code is designed to be flexible by adjusting the yaml (#)
 
 ## Image Captioning
 
-This trainer is built to use the filenames of your images as "captions" on a per-image basis, *so the entire Latent Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** 
+This trainer is built to use the filenames of your images as "captions" on a per-image basis, *so the entire Latent Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images, or write meaningful filenames for your images.  This is a big step forward in training the model and will help it learn more effectively.  
 
 ### Formatting
 
@@ -30,13 +53,13 @@ The filenames are using for captioning, with a split on underscore so you can ha
     john jacob jingleheimerschmidt sitting on a bench in a park with trees in the background_(1).png
     john jacob jingleheimerschmidt sitting on a bench in a park with trees in the background_(2).png
 
-In the 3rd and 4th example above, the _(1) and _(2) are ignored and not considered by the trainer.  This is useful if you end up with duplicate filenames but different image contents for whatever reason. 
+In the 3rd and 4th example above, the _(1) and _(2) are ignored and not considered by the trainer.  This is useful if you end up with duplicate filenames but different image contents for whatever reason, but that is generally a rare case.  
 
 ### Data set organization
 
-You will need to organize your files into datasets with a single layer of subfolders.  
+You can place all your images in some sort of "root" training folder and the traniner will recurvisely locate and find them all from any number of subfolders and add them to the queue for training.
 
-While you can simply stuff everything, new training and ground truth data all in one subfolder, for organization purposes I suggest splitting up your subfolders in a fashion such as the following:
+You may wish to organize with subfolders so you can adjust your training data mix, something like this:
 
     /training_samples/MyProject
     /training_samples/MyProject/man
@@ -45,76 +68,64 @@ While you can simply stuff everything, new training and ground truth data all in
     /training_samples/MyProject/paintings_laion
     /training_samples/MyProject/drawings_laion
 
-In the above example, "/training_samples/MyProject" will be your root folder for the command line.  It must be devoid of anything but the subfolders.  **The subfolders again are purely for your own organizational purposes, the names of the subfolders do not matter to the trainer.** It's up to you how you want to name or organize subfolders, the only requirement is that you use a single layer of subfolders and the root folder for your project contains nothing but the subfolders.  You must not put images or other files directly into /training_samples/MyProject. 
+In the above example, "training_samples/MyProject" will be the "--data_root" folder for the command line.  
 
-Also in the above example, /training_samples/MyProject/man would contain new training images you want to "teach" the model, and the man_laion and man_nvflickr sets would contain images scraped from laion or other original sources (see below for possible sources). It's up to you what you want to include.
+As you build your data set, you may find it is easiest to organize in this way to track your balance between new training data and ground truth used to preserve the model integrity.  For instance, if you have 500 new training images in "training_samples/MyProject/man" you may with to use 300  in the "man_laion" and another 200 in "/"man_nvflickr".  You can then experiment by removing different folders to see the effects on training quality and model preservation. 
 
-As you build your data set, you may find it is easiest to organize in this way to track your balance between new training data and ground truth used to preserve the model integrity.  For instance, if you have 500 new training images in ../man you may with to use 500  in the /man_laion and another 500 in /man_nvflickr.  You can then experiment by removing different folders to see the effects on training quality.
-
-### Suggestions
-
-The more data you add from ground truth data sets such as Laion, the more training you will get away with without "damaging" the original model.  The wider variety of data in the ground truth portion of your dataset, the less likely your training images are to "bleed" into the rest of your model, losing qualities like the ability to generate images of other styles you are not training.  This is about knowledge retention in the model by refeeding it the same data it was originally trained on.
+You can also organize subfolders for each character if you wish to train many characters so you can add and remove them, and easily track that you are balancing the number of images for each.
 
 ## Ground truth data sources and data engineering
 
-Visit [EveryDream Data Engineering Tools](https://github.com/victorchall/EveryDream) to find a web scraper that can pull down images from the Laion dataset.  You should consider that your first step before using this trainer to collect data.
+Visit [EveryDream Data Engineering Tools](https://github.com/victorchall/EveryDream) to find a **web scraper** that can pull down images from the Laion dataset along with an **Auto Caption** script to prepare your data.  You should consider that your first step before using this trainer if you wish to train a significant number of characters and if you wish to keep them or the general shared style of your subjects or art styles from bleeding into the rest of the model. 
 
-I suggest pulling down all the files for this set in particular: [https://huggingface.co/datasets/laion/laion2B-en-aesthetic](https://huggingface.co/datasets/laion/laion2B-en-aesthetic) to use with the web scraper.
+The more data you add from ground truth data sets such as Laion, the more training you will get away with without "damaging" the original model.  The wider variety of data in the ground truth portion of your dataset, the less likely your training images are to "bleed" into the rest of your model, losing qualities like the ability to generate images of other styles you are not training.  This is about knowledge retention in the model by refeeding it the same data it was originally trained on.  This is a big part of the reason why the original training code on Stable Diffusion was so effective.  It was able to train on a wide variety of data and manages to understand possibly millions of concepts and mix them. 
 
-There is information is in the EveryDream Data Engineering Tools link above on how to run the web scrape.  The webscrape takes zero GPU power, so you can run it locally on any PC with Python before renting GPU power if needed.  If you are interested in moving to larger scope projects I recommend investing time to curae your data sets as they can be reused. 
+If you don't care to preserve the model you can skip this and train only on your new data.  For a single subject, aka "fast" or "micro" mode, you can usually get away with putting one character or artstyle in without ruining the model you create. 
 
-The Nvidia Flickr set is also helpful and in a fairly "ready to use" format besides renaming the files: [https://github.com/NVlabs/ffhq-dataset](https://github.com/NVlabs/ffhq-dataset) 
-For this trainer, I suggest "close up photo of a person" for captioning of this dataset. If you want, you can go further and separate male/female photos and caption them "close up phot of a man" or "..a woman" as you see fit.  "a close up of a person" is also acceptable, dropping "photo".  You can simply select all in windows, F2 to rename and type "a close up of a person_" **without the quotes but with the underscore** to format the filename captions in a way this trainer can use.
 ## Starting training
 
-An example comand to start training:
+An example comand to start training: **make sure you activate the conda environment first** 
 
-    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume sd_v1-5_vae.ckpt -n MyProjectName --gpus 0, --data_root training_samples\MyProject
+    conda activate everydream
 
-In the above, the source training data is expected to be laid out in subfolders of training_samples\MyProject as described in above sections. It will use the first Nvidia GPU in the system, and resume from the checkpoint named "sd_v1-5_vae.ckpt".  "-n MyProjectName" is merely a name for the folder where logs will be written during training, which appear under /logs. 
+    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t --actual_resume sd_v1-5_vae.ckpt -n MyProjectName --data_root training_samples\MyProject
+
+In the above, the source training data is expected to be laid out in subfolders of training_samples\MyProject as described in above sections. It will resume from the checkpoint named "sd_v1-5_vae.ckpt" but you can change this to most Stable Diffusion checkpoints (ex. 1.4, 1.5, 1.5 + new vae, WD, or others that people have shared online). Inpainting model is not yet supported.  "-n MyProjectName" is merely a name for the folder where logs will be written during training, which appear under /logs. 
+
+## Managing training runs
+
+Each project is different, but consider carefully reading below to adjust your YAML file that configures your training run.  You can make your own copies of the YAML files for differenet projects then use --config to change which one you use.  I will tend to update the YAMLs in future releases so making your own copy also avoids a collision when you "git pull" a new version.  
 ## Testing
 
-I strongly recommend attempting to undertrain via the repeats and max_epochs above to test your model before continuing.  Try one epoch at 10, then grab the ckpt file from the log folder.  The ckpt will be dumped to a folder such as \logs\MyPrject2022-10-25T20-37-40_MyProject date stamped to the start of training. There are also test images in the \logs\images\train folder that spit out periodically based on another finetune yaml setting:
+I strongly recommend attempting to undertrain via the repeats and instead tend to set max_epoch higher *compared to typical dream booth recommendations* so you will get a few different ckpts along the course of your training session.  The ckpt files will be dumped to a folder such as "_\logs\MyPrject2022-10-25T20-37-40_MyProject_" date stamped to the start of training. There are also test images in the _\logs\images\train_ folder that spit out periodically based on another finetune yaml setting.
 
-      callbacks:
-        image_logger:
-        target: main.ImageLogger
-        params:
-            batch_frequency: 300
+The images will often not all be fully formed, and are randomly selected based on the last few training images, but it's a good idea to watch those images and learn to understand how they look compared to when you go try your new model out in a normal Stable Diffusion inference repo. 
 
-The images will often not all be fully formed, and are randomly selected based on the last few training images, but it's a good idea to start learning what to watch for in those images. 
-
-To continue training on a checkpoint, grab the last ckpt file \logs\MyPrject2022-10-25T20-37-40_MyProject\checkpoints and move it back to your base folder and just change the --actual_resume pointer to last.ckpt such as the following:
-
-    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume last.ckpt -n MyProjectName --gpus 0, --data_root training_samples\MyProject
-
-Again, good idea to think about adjusting your repeats before continuing!  
-
+If you are close, consider lowering repeats!
 ## Finetune yaml adjustments
+
+The finetune yamls are your best friend.
 
 Depending on your project, a few settings may be useful to tweak or adjust.  In [Starting Training](#starting_training) I'm using __v1-finetune_everydream.yaml__ here but you can make your own copies if you like with different adjustments and save them for your projects.  It is a good idea to get familar with this file as tweaking can be useful as you train.
 
-I'll highlight the following settings at the end of the file:
+I'll highlight the following settings at the end of the file: 
 
     trainer:
       benchmark: True
-      max_epochs: 2
+      max_epochs: 4
       max_steps: 99000
 
-max_epochs will halt training.  I suggest ending on a clean end of an epoch rather than using a steps limit, so defaults are configured as such.  2 epochs is not a lot but it is a good point to check before continuing as you can always continue training but you can't go back if you overdo it. 
+"max_epochs" will halt training.  I suggest ending on a clean end of an epoch rather than using a steps limit, so defaults are configured as such.  3-5 epochs will give you a few copies to try.  If you are unsure how many epochs to run, setting a higher value and lower repeats below will give you more ckpt files to test after training concludes.  You can always [continue training](#resuming_training) if needed.
 
       train:
         target: ldm.data.every_dream.EveryDreamBatch
         params:
-            size: 512
-            set: train
             repeats: 20
+            debug_level: 1
 
-Above, the repeats defines the number of times each training image is trained on per epoch.  This is mainly a control to balance against validation.  For large scale training with 100+ images per subject you may find just 20 repeats with 1 epoch or 10 repeats with 2 epochs is a good place to stop and check your outputs by loading your file into an inference repo.
+Above, the "repeats" defines the number of times each training image is trained on per epoch.  For large scale training with 500+ images per subject you may find just 10-15 repeats with 3-4 epochs.  As you add more and more data you can slowly use lower repeat values.  For very small training sets, try the micro YAML that has higher repeats (40-60) with a few epochs.
 
-The only difference between 20 repeats 1 epoch and 10 repeats 2 epochs is the later will run validation twice (always once per epoch), which costs some extra steps and time.  Once you develop a "feel" for your projects you may adjust increase repeats on your first training off a base model to save a bit of time on the validation steps, test, then continue.  You may which to, for example, doing 1 epoch at 20 repeats, check, then do one more epoch at 5 repeats if you feel it is "close" to done. 
-
-The above settings are a good place at least for humanoid subjects with 100+ images per subject, though some users may find less humanoid subjects require more training, such as cartoons, creatures, etc.
+debug_level: 1 will show in the console when you have multiple aspect ratio images that are dropped because they cannot be fit in.  
 
 You are also free to move data in and out of your training_samples/MyProject folder between training sessions.  If you have multiple subjects and your number of images between them is a bit mismatched in number, say, 100 for one and only 60 for another, you can try running one epoch 25 repeats, then remove the character with 100 images and train just the one with the 60 images for another epoch at 5 repeats.  It's best to try to keep the data evenly spread, but sometimes that is diffcult.  You may also find certain characters are harder to train, and need more on their own.  Again, test!  Go generate images between 
 
@@ -123,13 +134,58 @@ You are also free to move data in and out of your training_samples/MyProject fol
       params:
         batch_size: 6
 
-Batch size determine how many images are loaded and trained on in parallel. 6 will work on a 24GB GPU, 1 will only reduce VRAM use to about 20GB.  The batch size will divide the number of steps used as well, but one epoch is still "repeats" number of trainings on each image.  
+Batch size determine how many images are loaded and trained on in parallel. batch_size 6 will work on a 24GB GPU, 1 will only reduce VRAM use to about 19.5GB.  The batch size will divide the number of steps used as well, but one epoch is still "repeats" number of trainings on each image.  Higher batch sizes are desired to give better generalization as the gradient is calculated across the entire batch.  More images in a batch will also decrease training time by keep your GPU utilization higher.
 
-I recommend not worrying about step count, but you can calculate it per epoch as repeats * number_of_training_images / batch_size * (1+1/repeats).  For example, 500 training images with 10 repeats and batch size of six will perform 835 steps per epoch.
+I recommend not worrying about step count so much. Focus on epochs and repeats instead.  Steps are a result of the number of training images you have.
+
+    callbacks:
+      image_logger:
+        target: main.ImageLogger
+        params:
+          batch_frequency: 250
+
+Image logger batch frequency determines how often a test image is placed into the logs folder.  150-300 is recommended.  Lower values produce more images but slow training down a bit. 
+
+    modelcheckpoint:
+      params:
+        every_n_epochs: 1  # produce a ckpt every epoch, leave 1!
+        save_top_k: 4   # save the best N ckpts according to loss, can reduce to save disk space but suggest at LEAST 2, more if you have max_epochs below higher!
+
+
+"every_n_epochs" will make the trainer create a ckpt file at the end of every epoch.  I do not recommend changing this.  If you want checkpoints less frequently, increase your repeats instead.  "save_top_k" will save the "best" N ckpts based on a loss value the trainer is tracking.  If you are training 10 epochs and use save_top_k 4, it will only save the "best" 4, saving some disk space.  *It's possible the last few epochs may not save because they are getting worse over time according to the loss value the trainer calculates as it goes.*  If you want all the ckpts to always be saved you can set save_top_k to 99 or any value over max_epochs
+
+    validation:
+      target: ldm.data.ed_validate.EDValidateBatch
+      params:
+        repeats: 0.4
+
+Repeats for validation adjusts how much of the training set is used for validation.  I've added support to reduce this to a decimal value.  For large training where you only use 5-15 repeats, setting this lower speeds up training but stills allows the trainer to run validation to make sure nothing has broken along the way wasting future compute time if something goes wrong.  You can generally leave this untouched.
+
+## Resuming training
+
+If you find even your best or last ckpt from a training run seems "undertrained" you can cut and paste a trained ckpt from your logs into the root folder and resume by running the trainer again and chnage the --ckpt to point to your file.
+
+    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume epoch=03-step=01437.ckpt -n MyProjectName --data_root training_samples\MyProject
+
+or
+
+    python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t  --actual_resume last.ckpt -n MyProjectName --data_root training_samples\MyProject
+
+Note above the "epoch=03-step=01437.ckpt" or "last.ckpt" instead of "sd-v1-4-pruned.ckpt".  The full 11GB ckpt file contains the ema weights, non-ema weights, and optimizer state so resuming will have the full trainer state.
+
+## Pruning
+
+To prune your file down from 11GB to 2GB file use:
+
+    python prune_ckpt.py --ckpt last.ckpt
+
+(where last.ckpt is whatever your trained filename is).  This will remove training state and nonema weights and save a new file called "last-pruned.ckpt" in the root folder and leave the last.ckpt in place in case you need to resume.  
+
+I do not suggest using a pruned 2GB file to resume later training.  If you want to resume training, use the full 11GB file.  You can move your 2GB file to whatever your favorite Stable Diffusion webui is, test it out, and delete all the 11GB files and your log folder once you are satisfied with the results.
 
 ### Additional notes
 
-Thanks go to the CompVis team for the original training code, Xaiver Xiao for the DreamBooth implementation and tweaking of trainer configs to stuff it into a 24GB card, and Kane Wallmann for code take image captions from the filenames.
+Thanks go to the CompVis team for the original training code, Xaiver Xiao for the DreamBooth implementation and tweaking of trainer configs to stuff it into a 24GB card, and Kane Wallmann for the first implementation of image caption from the filenames.
 
 References:
 
@@ -137,8 +193,15 @@ References:
 
 [Xaiver Xiao's DreamBooth implementation](https://github.com/XavierXiao/Dreambooth-Stable-Diffusion)
 
-[Kane Wallmann's captioning capability](https://github.com/kanewallmann/Dreambooth-Stable-Diffusion)
+[Kane Wallmann](https://github.com/kanewallmann/Dreambooth-Stable-Diffusion)
 
 # Troubleshooting
 
-Cuda out of memory:  You should have <600MB used before starting training to use batch size 6.  People have reported issues with Precision X1 running in the background and Microsoft's system tray weather app causing problems.  You can disable hardware acceleration in apps like Discord and VS Code to reduce VRAM use, and close as many Chrome tabs as you can bear. 
+**Cuda out of memory:**  You should have <600MB used before starting training to use batch size 6.  People have reported issues with 
+
+* Precision X1 running in the background 
+* Microsoft's system tray weather widget 
+* Using the conda environment of another repo that uses older package versions
+
+You can disable hardware acceleration in apps like Discord and VS Code to reduce VRAM use, and close as many Chrome tabs as you can bear.  While using a batch_size of 1 only uses about 19.5GB it will have a significant impact on training speed and quality.
+

@@ -22,10 +22,11 @@ model:
       target: ldm.lr_scheduler.LambdaLinearScheduler
       params:
         warm_up_steps: [ 5 ]
-        cycle_lengths: [ 10000000000000 ] # incredibly large number to prevent corner cases
+        cycle_lengths: [ 1000 ] # incredibly large number to prevent corner cases
+        verbosity_interval: 25  # how often to print LR updates
         f_start: [ 1.e-6 ]
         f_max: [ 1.e-6 ] # 1.
-        f_min: [ 1.e-7 ] # 1.
+        f_min: [ 1.e-8 ] # 1.
 
     unet_config:
       target: ldm.modules.diffusionmodules.openaimodel.UNetModel
@@ -52,7 +53,7 @@ model:
         ddconfig:
           double_z: true
           z_channels: 4
-          resolution: 384
+          resolution: 512
           in_channels: 3
           out_ch: 3
           ch: 128
@@ -73,31 +74,31 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6
-    num_workers: 8
+    batch_size: 6  
+    num_workers: 12
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        size: 384
-        repeats: 2
+        repeats: 5
+        flip_p: 0   
+        debug_level: 1  
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 384
-        repeats: 0.4
+        repeats: 0.1
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 512
-        repeats: 0.2
+        repeats: 0.1
 
 lightning:
   modelcheckpoint:
     params:
       every_n_epochs: 1
-      #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
+      #every_n_train_steps: 1400 # can only use every_n_epochs OR every_n_train_steps, suggest you stick with epochs
       save_last: True
+      save_top_k: 2
       filename: "{epoch:02d}-{step:05d}"
   callbacks:
     image_logger:
@@ -108,9 +109,8 @@ lightning:
         increase_log_steps: False
 
   trainer:
-    benchmark: True # improves performance, don't touch
-    max_epochs: 3 # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
+    benchmark: True
+    max_epochs: 10
     max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
-    #precision: 16 # need lightning 1.6+ ?? *WIP*
-    #num_nodes: 2 # for multigpu *WIP*
+    gpus: 0,

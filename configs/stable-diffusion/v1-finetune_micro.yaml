@@ -73,30 +73,30 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6
+    batch_size: 6  # 6 is possible on 24GB, prefer highest possible
     num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        size: 512
-        repeats: 50  # try ~50-100 for micro models with 20-50 training images with 1-2 epochs
+        repeats: 50   # for micro models with 20-50 training images of one subject, try 30-60 repeats with 3-4 epochs (max_epochs below)
+        flip_p: 0   # use 0.5 to randomly flip images each repeat, not recommended unless very low training data < 20
+        debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio images
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 384
-        repeats: 0.4
+        repeats: 3
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        size: 512
-        repeats: 0.2
+        repeats: 1
 
 lightning:
   modelcheckpoint:
     params:
-      every_n_epochs: 1
+      every_n_epochs: 1  # produce a ckpt every epoch, leave 1!
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
+      save_top_k: 3  # save the best N ckpts according to loss, can reduce to save disk space but suggest at LEAST 2
       save_last: True
       filename: "{epoch:02d}-{step:05d}"
   callbacks:
@@ -109,8 +109,7 @@ lightning:
 
   trainer:
     benchmark: True
-    max_epochs: 1 # epoch step count will be (total training images) / batch_size * repeats, suggest 1-4 epochs depending on dataset size and repeats
-    max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
+    max_epochs: 4   # suggest 3-4+ and adjust repeats above, this will give you a few ckpts to test
+    max_steps: 99000   # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
-    #precision: 16 # need lightning 1.6+ ?? *WIP*
-    #num_nodes: 2 # for multigpu *WIP*
+    gpus: 0,
