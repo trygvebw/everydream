@@ -35,23 +35,25 @@ class DataLoaderMultiAspect():
         decorated_image_train_items = []
 
         for pathname in image_paths:
-            parts = os.path.basename(pathname).split("_")
-            
-            # untested
-            # txt_filename = parts[0] + ".txt"
-            # if os.path.exists(txt_filename):
-            #     try:
-            #         with open(txt_filename, 'r') as f:
-            #             identifier = f.readline()
-            #             identifier.rstrip()
-            #     except:
-            #         print(f" *** Error reading {txt_filename} to get caption")
-            #         identifier = parts[0]
-            #         pass
-            # else:
-            #     identifier = parts[0]  # uncomment block then remove next line
+            caption_from_filename = os.path.splitext(os.path.basename(pathname))[0].split("_")[0]
 
-            identifier = parts[0].split(".")[0]
+            txt_file_path = os.path.splitext(pathname)[0] + ".txt"
+
+            if os.path.exists(txt_file_path):
+                try:
+                    with open(txt_file_path, 'r') as f:
+                        print("txt loader")
+                        identifier = f.readline().rstrip()
+                        if len(identifier) < 1:
+                            raise ValueError(f" *** Could not find valid text in: {txt_file_path}")
+
+                except:
+                    print(f" *** Error reading {txt_file_path} to get caption, falling back to filename")
+                    identifier = caption_from_filename
+                    pass
+            else:
+                #print(f"base_image_filename: {base_image_filename}")
+                identifier = caption_from_filename
             
             image = Image.open(pathname)
             width, height = image.size
@@ -61,7 +63,9 @@ class DataLoaderMultiAspect():
 
             image_train_item = ImageTrainItem(image=None, caption=identifier, target_wh=target_wh, pathname=pathname, flip_p=flip_p)
 
+            print(f" **********{image_train_item.caption}")
             decorated_image_train_items.append(image_train_item)
+
         return decorated_image_train_items
 
     @staticmethod
