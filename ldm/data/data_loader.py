@@ -42,7 +42,6 @@ class DataLoaderMultiAspect():
             if os.path.exists(txt_file_path):
                 try:
                     with open(txt_file_path, 'r') as f:
-                        print("txt loader")
                         identifier = f.readline().rstrip()
                         if len(identifier) < 1:
                             raise ValueError(f" *** Could not find valid text in: {txt_file_path}")
