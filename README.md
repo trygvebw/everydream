@@ -25,10 +25,10 @@ Check out the tools repo here: [Every Dream Tools](https://www.github.com/victor
 You will need Anaconda or Miniconda.
 
 1. Clone the repo:  `git clone https://www.github.com/victorchall/everydream-trainer.git`
-2. Create a new conda environment with the provided environment.yml file: `conda env create -f environment.yml`
+2. Create a new conda environment with the provided environment.yaml file: `conda env create -f environment.yaml`
 3. Activate the environment: `conda activate everydream`
 
-*Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yml file.  I will be updating packages as work progresses as well.*
+*Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yaml file.  I will be updating packages as work progresses as well.*
 
 ## Techniques
 
