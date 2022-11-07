@@ -65,14 +65,14 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6  
+    batch_size: 6  # 6 is possible on 24GB, prefer highest possible
     num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        repeats: 5   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
-        debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio images
+        repeats: 10   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
+        debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio image batching
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
