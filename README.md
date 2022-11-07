@@ -8,12 +8,10 @@ If you find this tool useful, please consider subscribing to the project on [Pat
 
 ## Main features
 
-* **Supervised Learning** - Caption support reads the filename for each image as opposed to just token/class of dream booth implementations.  This also means you can train multiple subjects, multiple artstyles, or whatever multiple-anything-you-want in one training session into one model, including the context around your characters, like their clothing, background, cityscapes, or the common artstyle shared across them. 
+* **Supervised Learning** - Caption support reads the filename for each image as opposed to just token/class of dream booth implementations.  This also means you can train multiple subjects, multiple art styles, or whatever multiple-anything-you-want in one training session into one model, including the context around your characters, like their clothing, background, cityscapes, or the common artstyle shared across them.  
 * **Multiple Aspect Ratios** - Supports everything from 1:1 (square) to 4:1 (super tall) or 1:4 (super wide) all at the same time with no fuss.
-* **Auto-Scaling** - Automatically scales the image to the aspect ratios of the model.  No need to crop or resize images.  Just throw them in and let the code do the work.
-* **6 image batches** - Supports 6 images per batch on a 24GB GPU.  Support for lower VRAM GPUs pending...
-* **Full unfrozen model** - The model is fully unfrozen for better training.
-* **Recursive load** - Loads all images in a directory and subdirectories so you can organize your data set however you like. 
+* **Auto-Scaling** - Automatically resizes the image to the aspect ratios of the model.  No need to crop or resize images.  Just throw them in and let the code do the work. 
+* **Recursive load** - Loads all images in a folder and subfolders so you can organize your data set however you like. 
 
 ## Onward to Every Dream
 This trainer is focused on enabling fine tuning with new training data plus weaving in original, ground truth images scraped from the web via Laion dataset or other publically available ML image sets.  Compared to DreamBooth, concepts such as regularization have been removed in favor of support for adding back ground truth data (ex. Laion), and token/class concepts are removed and replaced by per-image captioning for training, more or less equal to how Stable Diffusion was trained itself. This is a shift back to the original training code and methodology for fine tuning for general cases.
@@ -30,7 +28,7 @@ You will need Anaconda or Miniconda.
 2. Create a new conda environment with the provided environment.yml file: `conda env create -f environment.yml`
 3. Activate the environment: `conda activate everydream`
 
-Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yml file.
+*Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yml file.  I will be updating packages as work progresses as well.*
 
 ## Techniques
 
@@ -75,6 +73,7 @@ In the above example, "training_samples/MyProject" will be the "--data_root" fol
 As you build your data set, you may find it is easiest to organize in this way to track your balance between new training data and ground truth used to preserve the model integrity.  For instance, if you have 500 new training images in "training_samples/MyProject/man" you may with to use 300  in the "man_laion" and another 200 in "/"man_nvflickr".  You can then experiment by removing different folders to see the effects on training quality and model preservation. 
 
 You can also organize subfolders for each character if you wish to train many characters so you can add and remove them, and easily track that you are balancing the number of images for each.
+
 ## Ground truth data sources and data engineering
 
 Visit [EveryDream Data Engineering Tools](https://github.com/victorchall/EveryDream) to find a **web scraper** that can pull down images from the Laion dataset along with an **Auto Caption** script to prepare your data.  You should consider that your first step before using this trainer if you wish to train a significant number of characters and if you wish to keep them or the general shared style of your subjects or art styles from bleeding into the rest of the model. 
@@ -85,7 +84,9 @@ If you don't care to preserve the model you can skip this and train only on your
 
 ## Starting training
 
-An example comand to start training:
+An example comand to start training: **make sure you activate the conda environment first** 
+
+    conda activate everydream
 
     python main.py --base configs/stable-diffusion/v1-finetune_everydream.yaml -t --actual_resume sd_v1-5_vae.ckpt -n MyProjectName --data_root training_samples\MyProject
 
@@ -102,6 +103,8 @@ The images will often not all be fully formed, and are randomly selected based o
 
 If you are close, consider lowering repeats!
 ## Finetune yaml adjustments
+
+The finetune yamls are your best friend.
 
 Depending on your project, a few settings may be useful to tweak or adjust.  In [Starting Training](#starting_training) I'm using __v1-finetune_everydream.yaml__ here but you can make your own copies if you like with different adjustments and save them for your projects.  It is a good idea to get familar with this file as tweaking can be useful as you train.
 
@@ -194,5 +197,11 @@ References:
 
 # Troubleshooting
 
-**Cuda out of memory:**  You should have <600MB used before starting training to use batch size 6.  People have reported issues with Precision X1 running in the background and Microsoft's system tray weather widget causing problems.  You can disable hardware acceleration in apps like Discord and VS Code to reduce VRAM use, and close as many Chrome tabs as you can bear.  While using a batch_size of 1 only uses about 19.5GB it will have a significant impact on training speed and quality.
+**Cuda out of memory:**  You should have <600MB used before starting training to use batch size 6.  People have reported issues with 
+
+* Precision X1 running in the background 
+* Microsoft's system tray weather widget 
+* Using the conda environment of another repo that uses older package versions
+
+You can disable hardware acceleration in apps like Discord and VS Code to reduce VRAM use, and close as many Chrome tabs as you can bear.  While using a batch_size of 1 only uses about 19.5GB it will have a significant impact on training speed and quality.
 
