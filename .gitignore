@@ -11,3 +11,5 @@ training_samples/**
 outputs/**
 *.ckpt
 src/**
+.vscode/**
+./test/**
