@@ -5,7 +5,7 @@ import glob
 
 
 parser = argparse.ArgumentParser(description='Pruning')
-parser.add_argument('--ckpt', type=str, default=None, help='path to model ckpt')
+parser.add_argument('--ckpt', type=str, default=False, help='path to model ckpt')
 args = parser.parse_args()
 ckpt = args.ckpt
 
