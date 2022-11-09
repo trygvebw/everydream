@@ -41,10 +41,8 @@ class ImageTrainItem(): # [image, identifier, target_aspect, closest_aspect_wh[w
         if x != y:
             if (x>y):
                 rand_x = x-y
-                rand_y = 0
                 sigma = max(rand_x*q,1)
             else:
-                rand_x = 0
                 rand_y = y-x
                 sigma = max(rand_y*q,1)
 

@@ -65,7 +65,7 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6  # 6 is possible on 24GB, prefer highest possible
+    batch_size: 4  # prefer highest possible without getting CUDA Out of Memory error
     num_workers: 8
     wrap: falsegit
     train:
