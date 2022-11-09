@@ -66,7 +66,7 @@ data:
   target: main.DataModuleFromConfig
   params:
     batch_size: 4 
-    num_workers: 8
+    num_workers: 1
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch

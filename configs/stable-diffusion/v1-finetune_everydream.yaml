@@ -76,7 +76,7 @@ data:
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        repeats: 0.4
+        repeats: 1
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
