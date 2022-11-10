@@ -47,7 +47,6 @@ def prune_it(p, keep_only_ema=False):
         MSG += " and non-EMA weights"
     print(MSG)
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Pruning')
     parser.add_argument('--ckpt', type=str, default=False, help='path to model ckpt')

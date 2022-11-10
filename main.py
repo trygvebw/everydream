@@ -27,6 +27,8 @@ from ldm.util import instantiate_from_config
 def load_model_from_config(config, ckpt, verbose=False):
     print(f"Loading model from {ckpt}")
     pl_sd = torch.load(ckpt, map_location="cpu")
+    if "global_step" in pl_sd:
+        print(f"ckpt: {ckpt} has {pl_sd['global_step']} steps")
     sd = pl_sd["state_dict"]
     config.model.params.ckpt_path = ckpt
     model = instantiate_from_config(config.model)
@@ -309,7 +311,9 @@ class SetupCallback(Callback):
     def on_keyboard_interrupt(self, trainer, pl_module):
         if trainer.global_rank == 0:
             print("Keyboard interrupt. Summoning checkpoint.")
-            ckpt_path = os.path.join(self.ckptdir, "last.ckpt")
+            print(f"Steps completed: {trainer.global_step} {trainer.current_epoch}")
+            # "{epoch:02d}-{step:05d}"
+            ckpt_path = os.path.join(self.ckptdir, f"interrupted_epoch={trainer.current_epoch:02d}-step={trainer.global_step:05d}.ckpt")
             trainer.save_checkpoint(ckpt_path)
 
     def on_pretrain_routine_start(self, trainer, pl_module):

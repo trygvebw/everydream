@@ -4,6 +4,7 @@ from pathlib import Path
 from ldm.data.data_loader import DataLoaderMultiAspect as dlma
 import math
 import ldm.data.dl_singleton as dls
+from ldm.data.image_train_item import ImageTrainItem
 
 class EveryDreamBatch(Dataset):
     def __init__(self,
@@ -16,6 +17,7 @@ class EveryDreamBatch(Dataset):
                  ):
         self.data_root = data_root
         self.batch_size = batch_size
+        self.debug_level = debug_level
         
         if not dls.shared_dataloader:
             print(" * Creating new dataloader singleton")
@@ -37,14 +39,16 @@ class EveryDreamBatch(Dataset):
     def __getitem__(self, i):
         idx = i % self.num_images
         image_train_item = self.image_train_items[idx]
-        example = self.__get_image_for_trainer(image_train_item)
+        example = self.__get_image_for_trainer(image_train_item, self.debug_level)
         return example
 
     @staticmethod
-    def __get_image_for_trainer(image_train_item):
+    def __get_image_for_trainer(image_train_item: ImageTrainItem, debug_level=0):
         example = {}
 
-        image_train_tmp = image_train_item.hydrate()
+        if debug_level > 1:
+            save = True
+        image_train_tmp = image_train_item.hydrate(crop=False, save=save)
 
         example["image"] = image_train_tmp.image
         example["caption"] = image_train_tmp.caption
