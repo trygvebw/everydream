@@ -46,10 +46,8 @@ class EveryDreamBatch(Dataset):
     def __get_image_for_trainer(image_train_item: ImageTrainItem, debug_level=0):
         example = {}
 
-        if debug_level > 1:
-            save = True
-        else:
-            save = False
+        save = debug_level > 1
+
         image_train_tmp = image_train_item.hydrate(crop=False, save=save)
 
         example["image"] = image_train_tmp.image
