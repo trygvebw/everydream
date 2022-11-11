@@ -14,6 +14,13 @@ ASPECTS = [[512,512], # 1 262144\
     ]
         
 class DataLoaderMultiAspect():
+    """
+    Data loader for multi-aspect-ratio training and bucketing
+
+    data_root: root folder of training data
+    batch_size: number of images per batch
+    flip_p: probability of flipping image horizontally (i.e. 0-0.5)
+    """
     def __init__(self, data_root, seed=555, debug_level=0, batch_size=1, flip_p=0.0):
         self.image_paths = []
         self.debug_level = debug_level
@@ -25,13 +32,17 @@ class DataLoaderMultiAspect():
         random.Random(seed).shuffle(self.image_paths)
         prepared_train_data = self.__prescan_images(debug_level, self.image_paths, flip_p) # ImageTrainItem[]
         self.image_caption_pairs = self.__bucketize_images(prepared_train_data, batch_size=batch_size, debug_level=debug_level)
-        print(f" * DLMA Example {self.image_caption_pairs[0]} images")
+
+        if debug_level > 0: print(f" * DLMA Example: {self.image_caption_pairs[0]} images")
 
     def get_all_images(self):
         return self.image_caption_pairs
 
     @staticmethod
     def __prescan_images(debug_level: int, image_paths: list, flip_p=0.0):
+        """
+        Create ImageTrainItem objects with metadata for hydration later 
+        """
         decorated_image_train_items = []
 
         for pathname in image_paths:
@@ -67,6 +78,9 @@ class DataLoaderMultiAspect():
 
     @staticmethod
     def __bucketize_images(prepared_train_data: list, batch_size=1, debug_level=0):
+        """
+        Put images into buckets based on aspect ratio with batch_size*n images per bucket, discards remainder
+        """
         # TODO: this is not terribly efficient but at least linear time
         buckets = {}
 
@@ -98,8 +112,6 @@ class DataLoaderMultiAspect():
         for f in os.listdir(recurse_root):
             current = os.path.join(recurse_root, f)
 
-            # get file ext
-            
             if os.path.isfile(current):
                 ext = os.path.splitext(f)[1]
                 if ext in ['.jpg', '.jpeg', '.png', '.bmp', '.webp']:

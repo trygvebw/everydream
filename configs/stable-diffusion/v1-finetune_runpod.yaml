@@ -65,7 +65,7 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 4 
+    batch_size: 5 
     num_workers: 8
     wrap: falsegit
     train:
@@ -88,7 +88,7 @@ lightning:
     params:
       every_n_epochs: 1  # produce a ckpt every epoch, leave 1!
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints, can use this if you want instead of every_n_epochs but suggest epochs
-      save_top_k: 2   # *** How many checkpoints you will get to try out, automatically keeps what it thinks are the best. ** REQUIRES ~15GB+ of VOLUME store per checkpoint!!! ***
+      save_top_k: 3   # *** How many checkpoints you will get to try out, automatically keeps what it thinks are the best. ** REQUIRES ~15GB+ of VOLUME store per checkpoint!!! ***
       # Above is important.  It costs a lot of VOLUME store but keeps you from having to start over if you overtrain by giving you a few checkpoints to try out.
       save_last: False
       filename: "{epoch:02d}-{step:05d}"
@@ -96,7 +96,7 @@ lightning:
     image_logger:
       target: main.ImageLogger
       params:
-        batch_frequency: 150
+        batch_frequency: 250
         max_images: 16
         increase_log_steps: False
 

@@ -3,12 +3,6 @@ import torch
 import argparse
 import glob
 
-
-parser = argparse.ArgumentParser(description='Pruning')
-parser.add_argument('--ckpt', type=str, default=None, help='path to model ckpt')
-args = parser.parse_args()
-ckpt = args.ckpt
-
 def prune_it(p, keep_only_ema=False):
     print(f"prunin' in path: {p}")
     size_initial = os.path.getsize(p)
@@ -53,6 +47,9 @@ def prune_it(p, keep_only_ema=False):
         MSG += " and non-EMA weights"
     print(MSG)
 
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Pruning')
+    parser.add_argument('--ckpt', type=str, default=False, help='path to model ckpt')
+    args = parser.parse_args()
+    ckpt = args.ckpt
     prune_it(ckpt)
