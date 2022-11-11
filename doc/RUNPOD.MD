@@ -8,13 +8,16 @@ You can sign up for Runpod here (*shameless referral link*): [Runpod](https://ru
 
 If you are confused by the wall of text, join the discord here: [EveryDream Discord](https://discord.gg/uheqxU6sXN)
 
-Make sure you have at least 50GB of Runpod **Volume** storage at a minimum so you don't waste training just 1 ckpt that is overtrained and have to start over.  Penny pinching on storage is ultimately a waste of your time and money!  This is setup to give you more than one ckpt so you don't overtrain.
+Make sure you have at least 70GB of Runpod **Volume** storage at a minimum so you don't waste training just 1 ckpt that is overtrained and have to start over.  Penny pinching on storage is ultimately a waste of your time and money!  This is setup to give you more than one ckpt so you don't overtrain.
+
+**Pick a runpod CLOSE to you with good bandwidth.** You need to download the file and downloading it from halfway across the world is likely slow!
+
+For example if you are in the US, find an instance in the US:
+![location](../demo/runpodlocation.png)
 
 ## Getting started
 
-1. Pick a 24GB GPU instance (community or secure).  You can use 48GB but it is unnecessary.  Make sure to use "ON DEMAND" not "SPOT" or your instance may be closed suddently and you will lose your training. Once you click, go "My Pods" 
-
-![r](../demo/runpodinstances.png)
+1. Pick a 24GB GPU instance (community or secure).  You can use 48GB but it is unnecessary.  Make sure to use "ON DEMAND" not "spot" or your instance may be closed suddently and you will lose your training. Once you click, go "My Pods" 
 
 1. Start a Pytorch instance in Runpod. Make sure to get plenty of volume space! 
 
@@ -31,7 +34,9 @@ Make sure you have at least 50GB of Runpod **Volume** storage at a minimum so yo
 
 ![r](../demo/runpodupload.png)
 
-5.  Make sure to go back to Runpod.io when you are done (don't forget to download your PRUNED.CKPT files) and STOP your instance and also click the **trash can button** to remove the volume storage.  You will be charged for the storage if you don't delete it.  
+5. The final cell in the instance will generate links you can right click to "save as" to download your ckpts.  You remembered to pick a runpod close to you with good bandwidth, right?  If not, you'll be waiting a while for your files to download. 
+
+6.  Make sure to go back to Runpod.io when you are done (don't forget to download your PRUNED.CKPT files) and STOP your instance and also click the **trash can button** to remove the volume storage.  You will be charged for the storage if you don't delete it.  
 
 ![r](../demo/runpodstop.png)
 
