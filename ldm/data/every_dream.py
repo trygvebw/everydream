@@ -48,6 +48,8 @@ class EveryDreamBatch(Dataset):
 
         if debug_level > 1:
             save = True
+        else:
+            save = False
         image_train_tmp = image_train_item.hydrate(crop=False, save=save)
 
         example["image"] = image_train_tmp.image
