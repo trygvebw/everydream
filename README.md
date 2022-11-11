@@ -1,6 +1,6 @@
 # Every Dream trainer for Stable Diffusion
 
-This is a bit of a divergence from other fine tuning methods out there for Stable Diffusion.  This is a general purpose fine-tuning codebase meant to bridge the gap from small scales (ex Texual Inversion, Dreambooth) and large scale (i.e. full fine tuning on large clusters of GPUs).  It is designed to run on a local 24GB Nvidia GPU, currently the 3090, 3090 Ti, 4090, or other various Quadrios and datacenter cards (A5500, A100, etc). 
+This is a bit of a divergence from other fine tuning methods out there for Stable Diffusion.  This is a general purpose fine-tuning codebase meant to bridge the gap from small scales (ex Texual Inversion, Dreambooth) and large scale (i.e. full fine tuning on large clusters of GPUs).  It is designed to run on a local 24GB Nvidia GPU, currently the 3090, 3090 Ti, 4090, or other various Quadrios and datacenter cards (A5500, A100, etc), or on Runpod with any of those GPUs. 
 
 Please join us on Discord! https://discord.gg/uheqxU6sXN
 
@@ -12,37 +12,40 @@ If you find this tool useful, please consider subscribing to the project on [Pat
 * **Multiple Aspect Ratios** - Supports everything from 1:1 (square) to 4:1 (super tall) or 1:4 (super wide) all at the same time with no fuss.
 * **Auto-Scaling** - Automatically resizes the image to the aspect ratios of the model.  No need to crop or resize images.  Just throw them in and let the code do the work. 
 * **Recursive load** - Loads all images in a folder and subfolders so you can organize your data set however you like. 
+* **[Runpod notebook](doc/RUNPOD.MD)** - Run on a 24GB+ GPU on Runpod.
+* **[Micro mode](doc/MICROMODELS.MD)** - Skip perservation and train a smaller model fast.
 
 ## Onward to Every Dream
+
 This trainer is focused on enabling fine tuning with new training data plus weaving in original, ground truth images scraped from the web via Laion dataset or other publically available ML image sets.  Compared to DreamBooth, concepts such as regularization have been removed in favor of support for adding back ground truth data (ex. Laion), and token/class concepts are removed and replaced by per-image captioning for training, more or less equal to how Stable Diffusion was trained itself. This is a shift back to the original training code and methodology for fine tuning for general cases.
 
-To get the most out of this trainer, you will need to curate a data set to be trained in addition to collect ground truth images to help preserve the model integrity and character.  Luckily, there are additional tools below to help enable that, and will grow over time.
+To get the most out of this trainer, you will need to curate your data with captions.  Luckily, there are additional tools below to help enable that, and will grow over time.
 
-Check out the tools repo here: [Every Dream Tools](https://www.github.com/victorchall/everydream) for automated captioning and Laion web scraper tools.
+Check out the tools repo here: [Every Dream Tools](https://www.github.com/victorchall/everydream) for automated captioning and Laion web scraper tools so you can use real images for model preservation if you wish to step beyond micro models. 
 
 ## Installation
 
-You will need Anaconda or Miniconda.
+You will need Anaconda or Miniconda to run locally on your own GPU.
 
 1. Clone the repo:  `git clone https://www.github.com/victorchall/everydream-trainer.git`
 2. Create a new conda environment with the provided environment.yaml file: `conda env create -f environment.yaml`
 3. Activate the environment: `conda activate everydream`
 
-*Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yaml file.  I will be updating packages as work progresses as well.*
+*Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yaml file.  I will be updating packages as work progresses as well.  Watch #change-log in the discord.*
 
 ## Techniques
 
-This is a general purpose fine tuning app.  You can train large or small scale with it and everything in between.
+This is a *general purpose fine tuning app*.  You can train large or small scale with it and everything in between.
 
 Check out [MICROMODELS.MD](./doc/MICROMODELS.MD) for a quickstart guide and example for quick model creation with a small data set.  It is suited for training one or two subects with 20-50 images each with no preservation in 10-30 minutes depending on your content.
 
-Or [README-FF7R.MD](./doc/README-FF7R.MD) for large scale training of many characters with model preservation.
+Or [README-FF7R.MD](./doc/README-FF7R.MD) for an example of large scale training of many characters with model preservation trained on 1000s of images with 7 characters and many citscapes from the video game Final Fantasy 7 Remake.
 
-You can scale up or down from there.  The code is designed to be flexible by adjusting the yaml (#)
+You can scale up or down from there.  The code is designed to be flexible by adjusting the yamls.  If you need help, join the discord for advice on your project.  Many people are working on exciting large scale fine tuning projects with hundreds or *thousands* of images.  You can do it too!
 
 ## Image Captioning
 
-This trainer is built to use the filenames of your images as "captions" on a per-image basis, or reads a .txt file that is in the same folder with the same filename, *so the entire Latent Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images, or write meaningful filenames for your images.  This is a big step forward in training the model and will help it learn more effectively.
+This trainer is built to use the filenames of your images as "captions" on a per-image basis, or reads a .txt file that is in the same folder with the same filename, *so the entire Stable Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images.  This is a big step forward in training the model and will help it learn more effectively and mix concepts (styles, characters, cityscapes and more) more freely. 
 
 ### Formatting
 
@@ -89,7 +92,9 @@ As you build your data set, you may find it is easiest to organize in this way t
 
 You can also organize subfolders for each character if you wish to train many characters so you can add and remove them, and easily track that you are balancing the number of images for each.
 
-## Ground truth data sources and data engineering
+If you are training multiple subjects, it is best to balance the amount of training data for each.  Subjects should have an even mix per subject.  Some styles will take at the same time as subjects with fewer training images of them. 
+
+## Ground truth data sources and data engineering for larger scale training
 
 Visit [EveryDream Data Engineering Tools](https://github.com/victorchall/EveryDream) to find a **web scraper** that can pull down images from the Laion dataset along with an **Auto Caption** script to prepare your data.  You should consider that your first step before using this trainer if you wish to train a significant number of characters and if you wish to keep them or the general shared style of your subjects or art styles from bleeding into the rest of the model. 
 
