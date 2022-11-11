@@ -28,6 +28,6 @@ On the command line, use v1-finetune_micro.yaml which is setup for this case.  Y
 
 Prompt is simply "ted bennett"
 
-![ted bennett as ironman](./demo/ted_bennett_ballet.png)
-![ted bennett as ironman](./demo/ted_bennett_ironman.png)
-![ted bennett as ironman](./demo/ted_bannett_superman.png)
+![ted bennett as ironman](../demo/ted_bennett_ballet.png)
+![ted bennett as ironman](../demo/ted_bennett_ironman.png)
+![ted bennett as ironman](../demo/ted_bannett_superman.png)
