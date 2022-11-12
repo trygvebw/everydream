@@ -7,6 +7,7 @@ To train a micro model, just place your 20-50 images into a training root folder
 Example:
 
     /training_samples/ted_bennett/a close up of ted bennett in a suit and tie.jpg
+    /training_samples/ted_bennett/ted bennett sitting on a couch next to mark wahlkberg.jpg
     etc
 
 Training root in this example will be "/training_samples/ted_bennett".
