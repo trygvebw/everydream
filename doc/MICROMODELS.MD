@@ -2,15 +2,14 @@
 
 Micro models allow training quickly on a small data set in minimal time.  The technique is simply training on the new data with no preservation.  If you add too much data or train for too long you will damage the model notably, but it is an easy and quick way to get one character into a model.
 
-To train a micro model, only place one subfolder of 20-50 images into a training root folder
+To train a micro model, just place your 20-50 images into a training root folder
 
 Example:
 
-    /training_samples/ted_bennett/ted_bennett
-    /training_samples/ted_bennett/ted_bennett/a close up of ted bennett in a suit and tie.jpg
+    /training_samples/ted_bennett/a close up of ted bennett in a suit and tie.jpg
     etc
 
-Training root in this example will be "/training_samples/ted_bennett" and the extra subfolder is required but can be named anything.
+Training root in this example will be "/training_samples/ted_bennett".
 
 ## Example
 
