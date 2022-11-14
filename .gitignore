@@ -9,6 +9,7 @@ __pycache__
 logs/**
 training_samples/**
 outputs/**
+input/**
 *.ckpt
 src/**
 .vscode/**

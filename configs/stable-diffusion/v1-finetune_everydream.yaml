@@ -65,14 +65,17 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 4  # prefer highest possible without getting CUDA Out of Memory error
-    num_workers: 8
+    batch_size: 6  # prefer highest possible without getting CUDA Out of Memory error
+    num_workers: 6
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        repeats: 10   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
+        repeats: 5   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
         debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio image batching
+        conditional_dropout: 0.01   # experimental, likelihood to drop the caption, may help with poorly captioned images
+        crop_jitter: 5   # adds N pixels of jitter to cropping algorithm for non-square images only
+        big_mode: 0   # set to 1 or 2 to use larger image sizes for training, USES LOTS OF VRAM! Requires 40GB+
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
@@ -87,20 +90,20 @@ lightning:
     params:
       every_n_epochs: 1  # produce a ckpt every epoch, leave 1!
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
-      save_top_k: 4   # save the best N ckpts according to loss, can reduce to save disk space but suggest at LEAST 2, more if you have max_epochs below higher!
+      save_top_k: 6   # save the best N ckpts according to loss, can reduce to save disk space but suggest at LEAST 2, more if you have max_epochs below higher!
       save_last: True
       filename: "{epoch:02d}-{step:05d}"
   callbacks:
     image_logger:
       target: main.ImageLogger
       params:
-        batch_frequency: 250
+        batch_frequency: 200
         max_images: 16
         increase_log_steps: False
 
   trainer:
     benchmark: True
-    max_epochs: 4   # better to run several epochs and test your checkpoints!  Try 4-5, you get a checkpoint every epoch to test! 
+    max_epochs: 6   # better to run several epochs and test your checkpoints!  Try 4-5, you get a checkpoint every epoch to test! 
     max_steps: 99000   # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
     gpus: 0,

@@ -1,7 +1,7 @@
 
 import PIL
 import numpy as np
-from torchvision import transforms
+from torchvision import transforms, utils
 import random
 import math
 import os
@@ -22,36 +22,43 @@ class ImageTrainItem():
         else:
             self.image = image
 
-    def hydrate(self, crop=False, save=False):
-        if type(self.image) is not np.ndarray:
-            self.image = PIL.Image.open(self.pathname).convert('RGB')
+    def hydrate(self, crop=False, save=False, crop_jitter=0):
+        self.image = PIL.Image.open(self.pathname).convert('RGB')
 
-            if crop:
-                cropped_img = self.__autocrop(self.image)
-                self.image = cropped_img.resize((512,512), resample=PIL.Image.BICUBIC)
-            else:
+        width, height = self.image.size
+        if crop:
+            cropped_img = self.__autocrop(self.image)
+            self.image = cropped_img.resize((512,512), resample=PIL.Image.BICUBIC)
+        else:
+            if width == 512 and height == 512:
+                pass
+            elif self.target_wh[0] == self.target_wh[1]:
+                pass
+            else: 
                 width, height = self.image.size
                 image_aspect = width / height
+                jitter_amount = random.randint(-crop_jitter, crop_jitter)
+                jitter_amount = min(jitter_amount, int(abs(width-height)/2))
                 target_aspect = self.target_wh[0] / self.target_wh[1]
                 if image_aspect > target_aspect:
-                    new_width = int(height * target_aspect)
-                    left = int((width - new_width) / 2)
+                    new_width = int(height * target_aspect) 
+                    left = int((width - new_width) / 2) + jitter_amount
                     right = left + new_width
                     self.image = self.image.crop((left, 0, right, height))
                 else:
                     new_height = int(width / target_aspect)
-                    top = int((height - new_height) / 2)
+                    top = int((height - new_height) / 2) + jitter_amount
                     bottom = top + new_height
                     self.image = self.image.crop((0, top, width, bottom))
-                self.image = self.image.resize(self.target_wh, resample=PIL.Image.BICUBIC)
+            self.image = self.image.resize(self.target_wh, resample=PIL.Image.BICUBIC)
 
-            self.image = self.flip(self.image)
+        self.image = self.flip(self.image)
 
-            if save: # for manual inspection
-                base_name = os.path.basename(self.pathname)
-                self.image.save(f"test/output/{base_name}")
-            
-            self.image = np.array(self.image).astype(np.uint8)
+        if save: # for manual inspection
+            base_name = os.path.basename(self.pathname)
+            self.image.save(f"test/output/{random.randint(0,4)}/{base_name}")
+        
+        self.image = np.array(self.image).astype(np.uint8)
 
         self.image = (self.image / 127.5 - 1.0).astype(np.float32)
 

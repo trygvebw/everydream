@@ -4,6 +4,7 @@ from torchvision import transforms
 from ldm.data.data_loader import DataLoaderMultiAspect as dlma
 import math
 import ldm.data.dl_singleton as dls
+from ldm.data.image_train_item import ImageTrainItem
 
 class EDValidateBatch(Dataset):
     def __init__(self,
@@ -42,7 +43,7 @@ class EDValidateBatch(Dataset):
         return example
 
     @staticmethod
-    def __get_image_for_trainer(image_train_item):
+    def __get_image_for_trainer(image_train_item: ImageTrainItem):
         example = {}
 
         image_train_tmp = image_train_item.hydrate()
