@@ -2,37 +2,7 @@ import os
 from PIL import Image
 import random
 from ldm.data.image_train_item import ImageTrainItem
-
-HUGE_ASPECTS = [[640,640], # 409600 1:1 
-    [704,576],[576,704], # 405504 1:1.25
-    [768,512],[512,768], # 393216 1:1.5
-    [896,448],[448,896], # 401408 1:2
-    [1024,384],[384,1024], # 393216 1:2.667
-    [1280,320],[320,1280], # 409600 1:4
-    [1408,256],[256,1408], # 360448 1:5.5
-    [1472,256],[256,1472], # 376832 1:5.75
-    [1536,256],[256,1536], # 393216 1:6
-    [1600,256],[256,1600], # 409600 1:6.25
-]
-
-BIG_ASPECTS = [[576,576], # 331776 1:1\
-    [640,512],[512,640], # 327680 1.25:1\
-    [704,448],[448,704], # 314928 1.5625:1
-    [832,384],[384,832], # 317440 2.1667:1\
-    [1024,320],[320,1024], # 327680 3.2:1\
-    [1280,256],[256,1280], # 327680 5:1\
-]
-
-ASPECTS = [[512,512], # 1 262144\
-        [576,448],[448,576], # 1.29 258048\
-        [640,384],[384,640], # 1.67 245760\
-        [704,384],[384,704], # 1.83 245760\
-        [768,320],[320,768], # 2.4 245760\
-        [832,256],[256,832], # 3.25 212992\
-        [896,256],[256,896], # 3.5 229376\
-        [960,256],[256,960],  # 3.75 245760\
-        [1024,256],[256,1024],  # 4 245760\
-    ]
+import ldm.data.aspects as aspects
         
 class DataLoaderMultiAspect():
     """
@@ -42,12 +12,13 @@ class DataLoaderMultiAspect():
     batch_size: number of images per batch
     flip_p: probability of flipping image horizontally (i.e. 0-0.5)
     """
-    def __init__(self, data_root, seed=555, debug_level=0, batch_size=1, flip_p=0.0, big_mode=0):
+    def __init__(self, data_root, seed=555, debug_level=0, batch_size=1, flip_p=0.0, resolution=512):
         self.image_paths = []
         self.debug_level = debug_level
         self.flip_p = flip_p
-        self.big_mode = big_mode
 
+        self.aspects = aspects.get_aspect_buckets(resolution)
+        print(f"* DLMA resolution {resolution}, buckets: {self.aspects}")
         print(" Preloading images...")
 
         self.__recurse_data_root(self=self, recurse_root=data_root)
@@ -56,12 +27,13 @@ class DataLoaderMultiAspect():
         self.image_caption_pairs = self.__bucketize_images(prepared_train_data, batch_size=batch_size, debug_level=debug_level)
 
         if debug_level > 0: print(f" * DLMA Example: {self.image_caption_pairs[0]} images")
+        
 
     def get_all_images(self):
         return self.image_caption_pairs
 
     @staticmethod
-    def __read_caption_from_file(self, file_path, fallback_caption):
+    def __read_caption_from_file(file_path, fallback_caption):
         caption = fallback_caption
         try:
             with open(file_path, 'r') as caption_file:
@@ -91,15 +63,13 @@ class DataLoaderMultiAspect():
             else:
                 caption = caption_from_filename
 
-            if debug_level > 1: print(f" * DLMA file: {pathname} with caption: {caption}")
+            #if debug_level > 1: print(f" * DLMA file: {pathname} with caption: {caption}")
             
             image = Image.open(pathname)
             width, height = image.size
             image_aspect = width / height
 
-            aspects = [ASPECTS, BIG_ASPECTS, HUGE_ASPECTS][self.big_mode]
-
-            target_wh = min(aspects, key=lambda x:abs(x[0]/x[1]-image_aspect))
+            target_wh = min(self.aspects, key=lambda aspects:abs(aspects[0]/aspects[1] - image_aspect))
 
             image_train_item = ImageTrainItem(image=None, caption=caption, target_wh=target_wh, pathname=pathname, flip_p=flip_p)
 
@@ -129,7 +99,9 @@ class DataLoaderMultiAspect():
                 truncate_count = len(buckets[bucket]) % batch_size
                 current_bucket_size = len(buckets[bucket])
                 buckets[bucket] = buckets[bucket][:current_bucket_size - truncate_count]
-                print(f"  ** Bucket {bucket} with {current_bucket_size} will drop {truncate_count} images due to batch size {batch_size}") if debug_level > 0 else None
+
+                if debug_level > 0:
+                    print(f"  ** Bucket {bucket} with {current_bucket_size} will drop {truncate_count} images due to batch size {batch_size}")
 
         # flatten the buckets
         image_caption_pairs = []

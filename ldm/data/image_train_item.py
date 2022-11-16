@@ -8,7 +8,11 @@ import os
 
 class ImageTrainItem(): 
     """
-    # [image, identifier, target_aspect, closest_aspect_wh(w,h), pathname]
+    image: PIL.Image
+    identifier: caption,
+    target_aspect: (width, height), 
+    pathname: path to image file
+    flip_p: probability of flipping image (0.0 to 1.0)
     """    
     def __init__(self, image: PIL.Image, caption: str, target_wh: list, pathname: str, flip_p=0.0):
         self.caption = caption
@@ -18,49 +22,62 @@ class ImageTrainItem():
         self.cropped_img = None
 
         if image is None:
-            self.image = PIL.Image.new(mode='RGB',size=(1,1))
+            self.image = []
         else:
             self.image = image
 
     def hydrate(self, crop=False, save=False, crop_jitter=0):
-        self.image = PIL.Image.open(self.pathname).convert('RGB')
+        """
+        crop: hard center crop to 512x512
+        save: save the cropped image to disk, for manual inspection of resize/crop
+        crop_jitter: randomly shift cropp by N pixels when using multiple aspect ratios to improve training quality
+        """
+        if not hasattr(self, 'image') or len(self.image) == 0:
+            self.image = PIL.Image.open(self.pathname).convert('RGB')
 
-        width, height = self.image.size
-        if crop:
-            cropped_img = self.__autocrop(self.image)
-            self.image = cropped_img.resize((512,512), resample=PIL.Image.BICUBIC)
-        else:
-            if width == 512 and height == 512:
-                pass
-            elif self.target_wh[0] == self.target_wh[1]:
-                pass
-            else: 
-                width, height = self.image.size
-                image_aspect = width / height
-                jitter_amount = random.randint(-crop_jitter, crop_jitter)
-                jitter_amount = min(jitter_amount, int(abs(width-height)/2))
-                target_aspect = self.target_wh[0] / self.target_wh[1]
-                if image_aspect > target_aspect:
-                    new_width = int(height * target_aspect) 
-                    left = int((width - new_width) / 2) + jitter_amount
-                    right = left + new_width
-                    self.image = self.image.crop((left, 0, right, height))
-                else:
-                    new_height = int(width / target_aspect)
-                    top = int((height - new_height) / 2) + jitter_amount
-                    bottom = top + new_height
-                    self.image = self.image.crop((0, top, width, bottom))
-            self.image = self.image.resize(self.target_wh, resample=PIL.Image.BICUBIC)
+            width, height = self.image.size
+            if crop:
+                cropped_img = self.__autocrop(self.image)
+                self.image = cropped_img.resize((512,512), resample=PIL.Image.BICUBIC)
+            else:
+                if self.target_wh[0] == self.target_wh[1]:
+                    pass
+                else: 
+                    width, height = self.image.size
+                    image_aspect = width / height
+                    jitter_amount = random.randint(0, crop_jitter)
+                    target_aspect = self.target_wh[0] / self.target_wh[1]
+                    print(f"{target_aspect}, {self.target_wh}")
+                    if image_aspect > target_aspect:
+                        new_width = int(height * target_aspect)
+                        jitter_amount = max(min(jitter_amount, int(abs(width-new_width)/2)), 0)
+                        left = jitter_amount
+                        right = left + new_width
+                        print(f"crop left: {left}, right: {right}, jitteramt:{jitter_amount}, [{width}, {height}] img: {self.pathname}")
+                        self.image = self.image.crop((left, 0, right, height))
+                    else:
+                        new_height = int(width / target_aspect)
+                        jitter_amount = max(min(jitter_amount, int(abs(height-new_height)/2)), 0)
+                        top = jitter_amount
+                        bottom = top + new_height
+                        print(f"crop top: {top}, bottom: {bottom}, jitteramt:{jitter_amount}, [{width}, {height}] img: {self.pathname}")
+                        self.image = self.image.crop((0, top, width, bottom))
+                self.image = self.image.resize(self.target_wh, resample=PIL.Image.BICUBIC)
 
-        self.image = self.flip(self.image)
+            self.image = self.flip(self.image)
 
-        if save: # for manual inspection
-            base_name = os.path.basename(self.pathname)
-            self.image.save(f"test/output/{random.randint(0,4)}/{base_name}")
+        if type(self.image) is not np.ndarray:
+            if save: 
+                base_name = os.path.basename(self.pathname)
+                if not os.path.exists("test/output"):
+                    os.makedirs("test/output")
+                self.image.save(f"test/output/{base_name}")
+            
+            self.image = np.array(self.image).astype(np.uint8)
+
+            self.image = (self.image / 127.5 - 1.0).astype(np.float32)
         
-        self.image = np.array(self.image).astype(np.uint8)
-
-        self.image = (self.image / 127.5 - 1.0).astype(np.float32)
+        print(self.image.shape)
 
         return self
 

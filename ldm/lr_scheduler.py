@@ -96,3 +96,35 @@ class LambdaLinearScheduler(LambdaWarmUpCosineScheduler2):
             self.last_f = f
             return f
 
+class EveryDreamScheduler:
+    """
+    f_min: minimum lr multiplier
+    f_max: maximum lr multiplier
+    f_start: lr multiplier at the beginning of the warm-up phase
+    warm_up_steps: number of steps in the warm-up phase
+    steps_to_min: number of steps to reach the minimum lr multiplier
+    """
+    def __init__(self, f_min=0.5, f_max=1.0, f_start=1.0, warm_up_steps=1000, steps_to_min=5000, verbosity_interval=100) -> None:
+        self.f_min = f_min
+        self.f_max = f_max
+        self.f_start = f_start
+        self.warm_up_steps = warm_up_steps
+        self.steps_to_min = steps_to_min
+        self.last_f = 0.
+        self.verbosity_interval = verbosity_interval
+    
+    def __call__(self, n, **kwargs):
+        return self.schedule(n, **kwargs)
+    
+    def schedule(self, n, **kawrgs):
+        if self.verbosity_interval > 0:
+            if n % self.verbosity_interval == 0: print(f"current step: {n}, recent lr-multiplier: {self.last_f:0.3f}, current cycle: {0}")
+
+        if n < self.warm_up_steps:
+            self.last_f = self.f_start
+        elif n < self.steps_to_min:
+            self.last_f = self.f_min + (self.f_max - self.f_min) * (self.steps_to_min - n) / (self.steps_to_min)
+        else:
+            self.last_f = self.f_min
+
+        return self.last_f
