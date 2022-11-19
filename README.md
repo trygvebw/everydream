@@ -13,6 +13,7 @@ If you find this tool useful, please consider subscribing to the project on [Pat
 * **Auto-Scaling** - Automatically resizes the image to the aspect ratios of the model.  No need to crop or resize images.  Just throw them in and let the code do the work. 
 * **Recursive load** - Loads all images in a folder and subfolders so you can organize your data set however you like. 
 * **[Runpod notebook](doc/RUNPOD.MD)** - Run on a 24GB+ GPU on Runpod.
+* **[Google Colab](https://colab.research.google.com/github/victorchall/EveryDream-trainer/blob/main/Train-Runpod.ipynb)** - Currently requires A100, you can bump up batch size 
 * **[Micro mode](doc/MICROMODELS.MD)** - Skip perservation and train a smaller model fast.
 
 ## Onward to Every Dream

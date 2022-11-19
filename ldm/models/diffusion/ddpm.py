@@ -453,6 +453,7 @@ class LatentDiffusion(DDPM):
                  conditioning_key=None,
                  scale_factor=1.0,
                  scale_by_std=False,
+                 scheduler_config=None,
                  *args, **kwargs):
         
         self.num_timesteps_cond = default(num_timesteps_cond, 1)
@@ -465,7 +466,7 @@ class LatentDiffusion(DDPM):
             conditioning_key = None
         ckpt_path = kwargs.pop("ckpt_path", None)
         ignore_keys = kwargs.pop("ignore_keys", [])
-        super().__init__(conditioning_key=conditioning_key, *args, **kwargs)
+        super().__init__(conditioning_key=conditioning_key, scheduler_config=scheduler_config, *args, **kwargs)
         self.concat_mode = concat_mode
         self.cond_stage_trainable = cond_stage_trainable
         self.cond_stage_key = cond_stage_key
@@ -704,8 +705,6 @@ class LatentDiffusion(DDPM):
             if cond_key != self.first_stage_key:
                 if cond_key in ['caption', 'coordinates_bbox']:
                     xc = batch[cond_key]
-                elif cond_key == 'class_label':
-                    xc = batch
                 else:
                     xc = super().get_input(batch, cond_key).to(self.device)
             else:
@@ -917,8 +916,14 @@ class LatentDiffusion(DDPM):
                  prog_bar=True, logger=True, on_step=True, on_epoch=False)
 
         if self.use_scheduler:
+            opt = self.optimizers().optimizer
             lr = self.optimizers().param_groups[0]['lr']
             self.log('lr_abs', lr, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+
+            if (batch_idx + 1) % 4 == 0:
+                print(f"optimizer step...lr: {lr}")
+                opt.zero_grad()
+                opt.step()
 
         return loss
 

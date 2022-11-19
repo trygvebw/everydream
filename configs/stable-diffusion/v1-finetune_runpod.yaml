@@ -102,7 +102,7 @@ lightning:
 
   trainer:
     benchmark: True
-    max_epochs: 4   # suggest 3-4+ and adjust repeats above, only "save_top_k" number (above) of epochs are kept.
+    max_epochs: 4   # suggest 3-4+ and adjust repeats above, only "save_top_k" number (above) of epochs are kept, be mindful of volume store use
     max_steps: 99000   # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
     gpus: 0,

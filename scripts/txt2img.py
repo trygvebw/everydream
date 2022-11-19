@@ -50,7 +50,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ddim_steps",
         type=int,
-        default=200,
+        default=50,
         help="number of ddim sampling steps",
     )
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--n_samples",
         type=int,
-        default=4,
+        default=1,
         help="how many samples to produce for the given prompt",
     )
 
