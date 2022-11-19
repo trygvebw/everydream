@@ -74,7 +74,7 @@ data:
         repeats: 5   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
         debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio image batching
         conditional_dropout: 0.04   # experimental, likelihood to drop the caption, may help with poorly captioned images
-        resolution: 512   # 512, 576, or 640, increases VRAM substantially
+        resolution: 512   # use 512 for 24GB, can use 576, 640, 704, 768, on higher VRAM cards only..
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
