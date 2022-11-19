@@ -23,11 +23,10 @@ class EveryDreamBatch(Dataset):
                  debug_level=0,
                  batch_size=1,
                  set='train',
-                 conditional_dropout=0.0,
+                 conditional_dropout=0.02,
                  resolution=512,
-                 crop_jitter=0,
+                 crop_jitter=20,
                  seed=555,
-                 image_cache_size=200
                  ):
         self.data_root = data_root
         self.batch_size = batch_size
@@ -35,7 +34,8 @@ class EveryDreamBatch(Dataset):
         self.conditional_dropout = conditional_dropout
         self.crop_jitter = crop_jitter
         self.unloaded_to_idx = 0
-        self.image_cache_size = image_cache_size
+        if seed == -1:
+            seed = random.randint(0, 9999)
         
         if not dls.shared_dataloader:
             print(" * Creating new dataloader singleton")
@@ -62,16 +62,13 @@ class EveryDreamBatch(Dataset):
         if self.unloaded_to_idx > idx:
             self.unloaded_to_idx = 0
 
-        if idx % (self.batch_size*3) == 0 and idx > (self.batch_size * 5) and idx > self.image_cache_size:
-            start_del = max(self.image_cache_size, self.unloaded_to_idx)
-            self.unloaded_to_idx = int(idx / self.batch_size)*self.batch_size - self.batch_size*8
-
-            print(f"{idx}: {start_del}, {self.unloaded_to_idx}") if self.debug_level > 1 else None
+        if idx % (self.batch_size*3) == 0 and idx > (self.batch_size * 5):
+            start_del = self.unloaded_to_idx
+            self.unloaded_to_idx = int(idx / self.batch_size)*self.batch_size - self.batch_size*4
             
-            if self.unloaded_to_idx > self.image_cache_size:
-                for j in range(start_del, self.unloaded_to_idx):
-                    del self.image_train_items[j].image
-                if self.debug_level > 1: print(f" * Unloaded images from idx {start_del} to {self.unloaded_to_idx}")
+            for j in range(start_del, self.unloaded_to_idx):
+                del self.image_train_items[j].image
+            if self.debug_level > 1: print(f" * Unloaded images from idx {start_del} to {self.unloaded_to_idx}")
 
         return example
 

@@ -65,18 +65,16 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 5  # prefer highest possible without getting CUDA Out of Memory error
+    batch_size: 4  # prefer highest possible without getting CUDA Out of Memory error
     num_workers: 8  # number of dataloader threads
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        repeats: 50   # for micro models with 20-50 training images of one subject, try 30-60 repeats with 3-4 epochs (max_epochs below)
-        flip_p: 0   # use 0.5 to randomly flip images each repeat, not recommended unless very low training data < 20
+        repeats: 60   # for micro models with 20-50 training images of one subject, try 30-60 repeats with 3-4 epochs (max_epochs below)
+        flip_p: 0.0   # use 0.5 to randomly flip images each repeat, not recommended unless very low training data < 20
         debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio images
-        conditional_dropout: 0.02  # drop conditioning (caption) completely this often
-        #partial_conditional_dropout: 0.02  # drop prepositional phrases from caption this often
-        crop_jitter: 10  # for non-square images only, applies slight random crop to each image
+        conditional_dropout: 0.04  # drop conditioning (caption) completely this often
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
@@ -91,7 +89,7 @@ lightning:
     params:
       every_n_epochs: 1  # produce a ckpt every epoch, leave at 1!
       #every_n_train_steps: 1400 # can only use epoch or train step checkpoints
-      save_top_k: 10  # save the best N ckpts according to loss, can reduce to save disk space but not recommended
+      save_top_k: 99  # save the best N ckpts according to loss, can reduce to save disk space but not recommended
       save_last: True
       filename: "{epoch:02d}-{step:05d}"
   callbacks:

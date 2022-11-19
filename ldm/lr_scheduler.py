@@ -79,13 +79,11 @@ class LambdaWarmUpCosineScheduler2:
 
 
 class LambdaLinearScheduler(LambdaWarmUpCosineScheduler2):
-
     def schedule(self, n, **kwargs):
         cycle = self.find_in_interval(n)
         n = n - self.cum_cycles[cycle]
-        if self.verbosity_interval > 0:
-            if n % self.verbosity_interval == 0: print(f"current step: {n}, recent lr-multiplier: {self.last_f}, "
-                                                       f"current cycle {cycle}")
+        if self.verbosity_interval > 0 and n % self.verbosity_interval == 0: 
+            print(f"current step: {n}, recent lr-multiplier: {self.last_f}, current cycle {cycle}")
 
         if n < self.lr_warm_up_steps[cycle]:
             f = (self.f_max[cycle] - self.f_start[cycle]) / self.lr_warm_up_steps[cycle] * n + self.f_start[cycle]
@@ -102,23 +100,23 @@ class EveryDreamScheduler:
     f_max: maximum lr multiplier
     f_start: lr multiplier at the beginning of the warm-up phase
     warm_up_steps: number of steps in the warm-up phase
-    steps_to_min: number of steps to reach the minimum lr multiplier
+    steps_to_min: number of steps to reach f_min multiplier
     """
-    def __init__(self, f_min=0.5, f_max=1.0, f_start=1.0, warm_up_steps=1000, steps_to_min=5000, verbosity_interval=100) -> None:
+    def __init__(self, f_min=0.5, f_max=1.0, f_start=0.5, warm_up_steps=500, steps_to_min=5000, verbosity_interval=100) -> None:
         self.f_min = f_min
         self.f_max = f_max
         self.f_start = f_start
         self.warm_up_steps = warm_up_steps
         self.steps_to_min = steps_to_min
-        self.last_f = 0.
+        self.last_f = 0.0
         self.verbosity_interval = verbosity_interval
     
     def __call__(self, n, **kwargs):
         return self.schedule(n, **kwargs)
     
     def schedule(self, n, **kawrgs):
-        if self.verbosity_interval > 0:
-            if n % self.verbosity_interval == 0: print(f"current step: {n}, recent lr-multiplier: {self.last_f:0.3f}, current cycle: {0}")
+        if self.verbosity_interval > 0 and n % self.verbosity_interval == 0: 
+            print(f"current step: {n}, recent lr-multiplier: {self.last_f:0.3f}")
 
         if n < self.warm_up_steps:
             self.last_f = self.f_start

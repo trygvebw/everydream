@@ -916,8 +916,14 @@ class LatentDiffusion(DDPM):
                  prog_bar=True, logger=True, on_step=True, on_epoch=False)
 
         if self.use_scheduler:
+            opt = self.optimizers().optimizer
             lr = self.optimizers().param_groups[0]['lr']
             self.log('lr_abs', lr, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+
+            if (batch_idx + 1) % 4 == 0:
+                print(f"optimizer step...lr: {lr}")
+                opt.zero_grad()
+                opt.step()
 
         return loss
 

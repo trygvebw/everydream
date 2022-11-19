@@ -81,16 +81,14 @@ data:
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
-        repeats: 1   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
+        repeats: 35   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
         debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio image batching
-        conditional_dropout: 0.08   # experimental, likelihood to drop the caption, may help with poorly captioned images
-        crop_jitter: 20   # adds N pixels of jitter to cropping algorithm for non-square images only
+        conditional_dropout: 0.04   # experimental, likelihood to drop the caption, may help with poorly captioned images
         resolution: 512  # defines max pixels for all aspects, 512, 576, 640, 704, or 768
-        seed: 555  # seed used to shuffle the dataset, keep constant for reproducibility
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        repeats: 0.25
+        repeats: 1
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
@@ -114,7 +112,7 @@ lightning:
 
   trainer:
     benchmark: True
-    max_epochs: 5
+    max_epochs: 2
     max_steps: 99000  # better to end on epochs not steps, especially with >500 images to ensure even distribution, but you can set this if you really want...
     check_val_every_n_epoch: 1
     gpus: 0,

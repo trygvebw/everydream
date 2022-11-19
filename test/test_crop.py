@@ -25,24 +25,18 @@ debug_level = 3 # 3 = dump images to disk after cropping and a bunch of crap int
 batch_size = 1
 repeats = 1
 crop_jitter = 50
+test_cycles = 10
 resolution = args.resolution # 512, 576, 640, 704, 768 
-every_dream_batch = EveryDreamBatch(data_root=data_root, flip_p=0.0, debug_level=3, batch_size=batch_size, repeats=repeats, crop_jitter=crop_jitter, conditional_dropout=0.1, resolution=resolution)
 
-print(f" *TEST* EveryDreamBatch epoch image length: {len(every_dream_batch)}")
-print(f" max test cycles: {int(len(every_dream_batch) / batch_size)}, batch_size: {batch_size}, repeats: {repeats}")
-i = 0
 
-while i < len(every_dream_batch):
-    curr_batch = []
-    for j in range(i,i+batch_size):
-        curr_batch.append(every_dream_batch[j])
-    
-    assert all(x == curr_batch[0]['image'].shape for x in [e['image'].shape for e in curr_batch])
-    assert all(x[0] > 2 for x in [e['image'].shape for e in curr_batch])
+every_dream_batch = EveryDreamBatch(data_root=data_root, flip_p=0.0, debug_level=3, \
+    batch_size=batch_size, repeats=repeats, crop_jitter=crop_jitter, \
+    conditional_dropout=0.1, resolution=resolution, \
+    )
 
-    i += batch_size
+for i in range(0,len(every_dream_batch)):
+    _ = every_dream_batch[i]
 
-print(f" *TEST* test cycles: {i}")
-print(f" *TEST* EveryDreamBatch epoch image length: {len(every_dream_batch)}")
+print(f" *TEST* test cycles: {test_cycles}")
 elapsed = time.perf_counter() - s
 print(f"{__file__} executed in {elapsed:5.2f} seconds.")

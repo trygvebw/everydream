@@ -65,22 +65,20 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 6  # prefer highest possible without getting CUDA Out of Memory error, A100 40GB =~20 80GB= ~48
-    num_workers: 6
+    batch_size: 4  # prefer highest possible without getting CUDA Out of Memory error, A100 40GB =~20 80GB= ~48
+    num_workers: 8
     wrap: falsegit
     train:
       target: ldm.data.every_dream.EveryDreamBatch
       params:
         repeats: 5   # rough suggestions: 5 with 5000+ images, 15 for 1000 images, use micro yaml for <100
         debug_level: 1   # 1 to print if images are dropped due to multiple-aspect ratio image batching
-        conditional_dropout: 0.08   # experimental, likelihood to drop the caption, may help with poorly captioned images
-        crop_jitter: 5   # adds N pixels of jitter to cropping algorithm for non-square images only
+        conditional_dropout: 0.04   # experimental, likelihood to drop the caption, may help with poorly captioned images
         resolution: 512   # 512, 576, or 640, increases VRAM substantially
-        seed: 555  # seed used to shuffle the dataset ordering, keep constant for reproducibility
     validation:
       target: ldm.data.ed_validate.EDValidateBatch
       params:
-        repeats: 1
+        repeats: 0.5
     test:
       target: ldm.data.ed_validate.EDValidateBatch
       params:

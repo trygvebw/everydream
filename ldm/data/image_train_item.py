@@ -6,6 +6,8 @@ import random
 import math
 import os
 
+_RANDOM_TRIM = 0.04
+
 class ImageTrainItem(): 
     """
     image: PIL.Image
@@ -26,7 +28,7 @@ class ImageTrainItem():
         else:
             self.image = image
 
-    def hydrate(self, crop=False, save=False, crop_jitter=0):
+    def hydrate(self, crop=False, save=False, crop_jitter=20):
         """
         crop: hard center crop to 512x512
         save: save the cropped image to disk, for manual inspection of resize/crop
@@ -36,31 +38,46 @@ class ImageTrainItem():
             self.image = PIL.Image.open(self.pathname).convert('RGB')
 
             width, height = self.image.size
-            if crop:
+            if crop: 
                 cropped_img = self.__autocrop(self.image)
                 self.image = cropped_img.resize((512,512), resample=PIL.Image.BICUBIC)
             else:
+                width, height = self.image.size
+                jitter_amount = random.randint(0,crop_jitter)
+
                 if self.target_wh[0] == self.target_wh[1]:
-                    pass
+                    if width > height:
+                        left = random.randint(0, width - height)
+                        self.image = self.image.crop((left, 0, height+left, height))
+                        width = height
+                    elif height > width:
+                        top = random.randint(0, height - width)
+                        self.image = self.image.crop((0, top, width, width+top))
+                        height = width
+                    elif width > self.target_wh[0]:
+                        slice = min(int(self.target_wh[0] * _RANDOM_TRIM), width-self.target_wh[0])
+                        slicew_ratio = random.random()
+                        left = int(slice*slicew_ratio)
+                        right = width-int(slice*(1-slicew_ratio))
+                        sliceh_ratio = random.random()
+                        top = int(slice*sliceh_ratio)
+                        bottom = height- int(slice*(1-sliceh_ratio))
+
+                        self.image = self.image.crop((left, top, right, bottom))
                 else: 
-                    width, height = self.image.size
-                    image_aspect = width / height
-                    jitter_amount = random.randint(0, crop_jitter)
+                    image_aspect = width / height                    
                     target_aspect = self.target_wh[0] / self.target_wh[1]
-                    print(f"{target_aspect}, {self.target_wh}")
                     if image_aspect > target_aspect:
                         new_width = int(height * target_aspect)
                         jitter_amount = max(min(jitter_amount, int(abs(width-new_width)/2)), 0)
                         left = jitter_amount
                         right = left + new_width
-                        print(f"crop left: {left}, right: {right}, jitteramt:{jitter_amount}, [{width}, {height}] img: {self.pathname}")
                         self.image = self.image.crop((left, 0, right, height))
                     else:
                         new_height = int(width / target_aspect)
                         jitter_amount = max(min(jitter_amount, int(abs(height-new_height)/2)), 0)
                         top = jitter_amount
                         bottom = top + new_height
-                        print(f"crop top: {top}, bottom: {bottom}, jitteramt:{jitter_amount}, [{width}, {height}] img: {self.pathname}")
                         self.image = self.image.crop((0, top, width, bottom))
                 self.image = self.image.resize(self.target_wh, resample=PIL.Image.BICUBIC)
 
@@ -77,7 +94,7 @@ class ImageTrainItem():
 
             self.image = (self.image / 127.5 - 1.0).astype(np.float32)
         
-        print(self.image.shape)
+        #print(self.image.shape)
 
         return self
 

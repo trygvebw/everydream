@@ -1,5 +1,5 @@
 
-GOD_ASPECTS = [[768,768],  # 589824 1:1
+ASPECTS5 = [[768,768],     # 589824 1:1
     [832,704],[704,832],   # 585728 1.181:1
     [896,640],[640,896],   # 573440 1.4:1
     [960,576],[576,960],   # 552960 1.6:1
@@ -14,7 +14,7 @@ GOD_ASPECTS = [[768,768],  # 589824 1:1
     [1536,320],[320,1536], # 491520 4.8:1
 ]
 
-MASSIVE_ASPECTS = [[704,704], # 501,376 1:1
+ASPECTS4 = [[704,704],     # 501,376 1:1
     [768,640],[640,768],   # 491,520 1.2:1
     [832,576],[576,832],   # 458,752 1.444:1
     [896,512],[512,896],   # 458,752 1.75:1
@@ -29,10 +29,10 @@ MASSIVE_ASPECTS = [[704,704], # 501,376 1:1
     [1536,320],[320,1536], # 491,520 4.8:1
 ]
 
-HUGE_ASPECTS = [[640,640], # 409600 1:1 
-    [704,576],[576,704],  # 405504 1.25:1
-    [768,512],[512,768],  # 393216 1.5:1
-    [896,448],[448,896],  # 401408 2:1
+ASPECTS3 = [[640,640],     # 409600 1:1 
+    [704,576],[576,704],   # 405504 1.25:1
+    [768,512],[512,768],   # 393216 1.5:1
+    [896,448],[448,896],   # 401408 2:1
     [1024,384],[384,1024], # 393216 2.667:1
     [1280,320],[320,1280], # 409600 4:1
     [1408,256],[256,1408], # 360448 5.5:1
@@ -41,13 +41,13 @@ HUGE_ASPECTS = [[640,640], # 409600 1:1
     [1600,256],[256,1600], # 409600 6.25:1
 ]
 
-BIG_ASPECTS = [[576,576], # 331776 1:1\
-    [640,512],[512,640],  # 327680 1.25:1\
-    [640,448],[448,640],  # 286720 1.4286:1\
-    [704,448],[448,704],  # 314928 1.5625:1
-    [832,384],[384,832],  # 317440 2.1667:1\
-    [1024,320],[320,1024], # 327680 3.2:1\
-    [1280,256],[256,1280], # 327680 5:1\
+ASPECTS2 = [[576,576],     # 331776 1:1
+    [640,512],[512,640],   # 327680 1.25:1
+    [640,448],[448,640],   # 286720 1.4286:1
+    [704,448],[448,704],   # 314928 1.5625:1
+    [832,384],[384,832],   # 317440 2.1667:1
+    [1024,320],[320,1024], # 327680 3.2:1
+    [1280,256],[256,1280], # 327680 5:1
 ]
 
 ASPECTS = [[512,512],      # 262144 1:1
@@ -64,13 +64,13 @@ def get_aspect_buckets(resolution):
     if resolution < 512:
         raise ValueError("Resolution must be at least 512")
     try: 
-        rounded_resolution = int(resolution / 64) * 64 # round down to nearest 64
+        rounded_resolution = int(resolution / 64) * 64
         all_image_sizes = __get_all_aspects()
-        aspects = next(filter(lambda sizes: sizes[0][0]==rounded_resolution, all_image_sizes), None) # find matching set of aspect ratios
+        aspects = next(filter(lambda sizes: sizes[0][0]==rounded_resolution, all_image_sizes), None)
         return aspects
     except Exception as e:
         print(f" *** Could not find selected resolution: {rounded_resolution}, check your resolution in config YAML")
         raise e
 
 def __get_all_aspects():
-    return [ASPECTS, BIG_ASPECTS, HUGE_ASPECTS, MASSIVE_ASPECTS, GOD_ASPECTS]
+    return [ASPECTS, ASPECTS2, ASPECTS3, ASPECTS4, ASPECTS5]

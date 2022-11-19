@@ -36,7 +36,7 @@ class DataLoaderMultiAspect():
     def __read_caption_from_file(file_path, fallback_caption):
         caption = fallback_caption
         try:
-            with open(file_path, 'r') as caption_file:
+            with open(file_path, encoding='utf-8', mode='r') as caption_file:
                 caption = caption_file.read()
         except:
             print(f" *** Error reading {file_path} to get caption, falling back to filename")
