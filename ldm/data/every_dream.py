@@ -67,7 +67,8 @@ class EveryDreamBatch(Dataset):
             self.unloaded_to_idx = int(idx / self.batch_size)*self.batch_size - self.batch_size*4
             
             for j in range(start_del, self.unloaded_to_idx):
-                del self.image_train_items[j].image
+                if hasattr(self.image_train_items[j], 'image'):
+                    del self.image_train_items[j].image
             if self.debug_level > 1: print(f" * Unloaded images from idx {start_del} to {self.unloaded_to_idx}")
 
         return example

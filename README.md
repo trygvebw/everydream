@@ -44,9 +44,22 @@ Or [README-FF7R.MD](./doc/README-FF7R.MD) for an example of large scale training
 
 You can scale up or down from there.  The code is designed to be flexible by adjusting the yamls.  If you need help, join the discord for advice on your project.  Many people are working on exciting large scale fine tuning projects with hundreds or *thousands* of images.  You can do it too!
 
+## Tracking progress
+
+Logs are in the /logs folder along with your test image samples.
+
+You can also watch your training progress through Tensorboard.  You'll need to launch a second terminal and activate the conda environment again, then run the following command.  It will be available at http://localhost:6006/ or http://localhost:6006/ if you are running locally (URL will be in the terminal output).
+
+    (everydream) R:\everydream-trainer>tensorboard --logdir logs
+
+
 ## Image Captioning
 
 This trainer is built to use the filenames of your images as "captions" on a per-image basis, or reads a .txt file that is in the same folder with the same filename, *so the entire Stable Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images.  This is a big step forward in training the model and will help it learn more effectively and mix concepts (styles, characters, cityscapes and more) more freely. 
+
+## Data prep and cropping
+
+With the multiple-aspect ratio support, it is important to follow cropping guidelines. Please read here for advice: [CROPPING.MD](./doc/CROPPING.MD)
 
 ### Formatting
 
