@@ -55,11 +55,15 @@ You can also watch your training progress through Tensorboard.  You'll need to l
 
 ## Image Captioning
 
-This trainer is built to use the filenames of your images as "captions" on a per-image basis, or reads a .txt file that is in the same folder with the same filename, *so the entire Stable Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images.  This is a big step forward in training the model and will help it learn more effectively and mix concepts (styles, characters, cityscapes and more) more freely. 
+This trainer is built to use the filenames of your images as "captions" on a per-image basis, or reads a .txt file that is in the same folder with the same filename, *so the entire Stable Diffusion model can be trained effectively.*  **Image captioning is a big step forward.** I strongly suggest you use the tools repo to caption your images.  This will help it learn more effectively and mix concepts (styles, characters, cityscapes and more) more freely. 
+
+[More detailed info on captioning](doc/CAPTIONING.MD)
 
 ## Data prep and cropping
 
-With the multiple-aspect ratio support, it is important to follow cropping guidelines. Please read here for advice: [CROPPING.MD](./doc/CROPPING.MD)
+With the multiple-aspect ratio support, it is important to follow cropping guidelines. Please read here for advice: 
+
+[More detailed info on cropping](./doc/CROPPING.MD)
 
 ### Formatting
 
