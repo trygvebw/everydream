@@ -34,6 +34,10 @@ You will need Anaconda or Miniconda to run locally on your own GPU.
 
 *Please note other repos are using older versions of some packages like torch, torchvision, and transformers that are known to be less VRAM efficient and cause problems.  Please make a new conda environment for this repo and use the provided environment.yaml file.  I will be updating packages as work progresses as well.  Watch #change-log in the discord.*
 
+### Docker option
+
+Entmike has created a dockerfile for EveryDream tools and trainer available here: https://github.com/entmike/docker-images/tree/main/everydream
+
 ## Techniques
 
 This is a *general purpose fine tuning app*.  You can train large or small scale with it and everything in between.
