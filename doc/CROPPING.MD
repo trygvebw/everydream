@@ -42,6 +42,6 @@ ex orange: "a man in a checker jacket with his hands in his pockets wanting on a
 
 ex blue: "two men walking together on a sidewalk with a pond and trees in the background"
 
-ex purple: "two men walking in washingon, dc looking at each other with the washington monument in the background and the lincoln memorial reflection poon behind them, film still"
+ex purple: "two men walking in washington, dc looking at each other with the washington monument in the background and the lincoln memorial reflection pool behind them, film still"
 
 Again, make sure AFTER you crop and properly caption what is left you still have enough resolution.  If the original image isn't big enough, the smaller crops may be insufficient and should be avoided.  
