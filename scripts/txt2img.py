@@ -36,7 +36,7 @@ if __name__ == "__main__":
         "--prompt",
         type=str,
         nargs="?",
-        default="a painting of a virus monster playing guitar",
+        default="a painting of boy walking his dog",
         help="the prompt to render"
     )
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         type=str,
         nargs="?",
         help="dir to write results to",
-        default="outputs/txt2img-samples"
+        default="outputs"
     )
     parser.add_argument(
         "--ddim_steps",
@@ -76,14 +76,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--H",
         type=int,
-        default=256,
+        default=512,
         help="image height, in pixel space",
     )
 
     parser.add_argument(
         "--W",
         type=int,
-        default=256,
+        default=512,
         help="image width, in pixel space",
     )
 
@@ -107,15 +107,11 @@ if __name__ == "__main__":
         default="/data/pretrained_models/ldm/text2img-large/model.ckpt", 
         help="Path to pretrained ldm text2img model")
 
-    parser.add_argument(
-        "--embedding_path", 
-        type=str, 
-        help="Path to a pre-trained embedding manager checkpoint")
 
     opt = parser.parse_args()
 
 
-    config = OmegaConf.load("configs/latent-diffusion/txt2img-1p4B-eval_with_tokens.yaml")  # TODO: Optionally download from same location as ckpt and chnage this logic
+    config = OmegaConf.load("configs/stable-diffusion/v1-inference.yaml")  # TODO: Optionally download from same location as ckpt and chnage this logic
     model = load_model_from_config(config, opt.ckpt_path)  # TODO: check path
     #model.embedding_manager.load(opt.embedding_path)
 
@@ -133,7 +129,7 @@ if __name__ == "__main__":
     prompt = opt.prompt
 
 
-    sample_path = os.path.join(outpath, "samples")
+    sample_path = outpath
     os.makedirs(sample_path, exist_ok=True)
     base_count = len(os.listdir(sample_path))
 
@@ -163,22 +159,5 @@ if __name__ == "__main__":
                     Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join(sample_path, f"{base_count:04}.jpg"))
                     base_count += 1
                 all_samples.append(x_samples_ddim)
-
-
-    # additionally, save as grid
-    grid = torch.stack(all_samples, 0)
-    grid = rearrange(grid, 'n b c h w -> (n b) c h w')
-    
-    for i in range(grid.size(0)):
-           save_image(grid[i, :, :, :], os.path.join(outpath,opt.prompt+'_{}.png'.format(i)))
-           
-    grid = make_grid(grid, nrow=opt.n_samples)
-    
-
-    # to image
-    grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
-    Image.fromarray(grid.astype(np.uint8)).save(os.path.join(outpath, f'{prompt.replace(" ", "-")}.jpg'))
-    
-    
 
     print(f"Your samples are ready and waiting four you here: \n{outpath} \nEnjoy.")
